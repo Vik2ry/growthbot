@@ -19,8 +19,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { BetterTooltip } from '@/components/ui/tooltip';
-import Image from "next/image";
-import { Sidebar as SidebarIcon } from "lucide-react";
+import Image from 'next/image';
+import { Sidebar as SidebarIcon } from 'lucide-react';
 import { SidebarToggle } from './sidebar-toggle';
 
 export function AppSidebar({ user }: { user: User | undefined }) {
@@ -28,11 +28,9 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
 
   return (
-    <Sidebar
-    className="flex flex-col bg-white rounded-3xl border p-4 w-80 m-6"
->
-<SidebarHeader className="flex-row justify-between mb-6">
-<SidebarMenu>
+    <Sidebar className="flex flex-col bg-white rounded-3xl border p-4 w-80 m-6">
+      <SidebarHeader className="flex-row justify-between mb-6">
+        <SidebarMenu>
           {/* <div className="flex flex-row justify-between items-center">
             <div
               onClick={() => {
@@ -60,19 +58,18 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               </Button>
             </BetterTooltip>
           </div> */}
-          <Image src={require("@/assets/Logo.webp")} alt="GrowthBot" />
+          <Image src={require('@/assets/Logo.webp')} alt="GrowthBot" />
           <SidebarToggle />
           <div className="border-b" />
         </SidebarMenu>
-
       </SidebarHeader>
       <SidebarContent className="flex-1 pl-6 pt-4 overflow-auto">
-      <Button variant="ghost" className="w-full mb-4 justify-start text-md">
-          <Image src={require("@/assets/Star.svg")} alt="star" /> Discover
+        <Button variant="ghost" className="w-full mb-4 justify-start text-md">
+          <Image src={require('@/assets/Star.svg')} alt="star" /> Discover
           mentor
         </Button>
         <Button className="w-4/5 mb-6 p-5 bg-[#0F1531] hover:bg-indigo-900 text-white text-md">
-          <Image src={require("@/assets/Add.svg")} alt="add" />
+          <Image src={require('@/assets/Add.svg')} alt="add" />
           New chat
         </Button>
         <div className="border-b" />
@@ -83,12 +80,12 @@ export function AppSidebar({ user }: { user: User | undefined }) {
       <SidebarFooter className="gap-0">
         {user && (
           <>
-          <div className="border-b" />
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarUserNav user={user} />
-            </SidebarGroupContent>
-          </SidebarGroup>
+            <div className="border-b" />
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarUserNav user={user} />
+              </SidebarGroupContent>
+            </SidebarGroup>
           </>
         )}
       </SidebarFooter>
