@@ -1,7 +1,6 @@
 'use client';
 import { ChevronUp } from 'lucide-react';
 import Image from 'next/image';
-import { type User } from 'next-auth';
 import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 
@@ -17,13 +16,22 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { ChevronRight, Edit, LogOut, Plus, User as UserIcon } from "lucide-react";
+import {
+  ChevronRight,
+  Edit,
+  LogOut,
+  Plus,
+  User as UserIcon,
+} from 'lucide-react';
+import { useClerk } from '@clerk/nextjs';
 
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { UserResource } from '@clerk/types';
+import { Logout } from '@/components/icons/logout';
 
-export function SidebarUserNav({ user }: { user: User }) {
-  const { setTheme, theme } = useTheme();
+export function SidebarUserNav({ user }: { user: UserResource }) {
+  const { signOut } = useClerk();
 
   return (
     <SidebarMenu>
@@ -76,15 +84,24 @@ export function SidebarUserNav({ user }: { user: User }) {
         </Button>
         <div className="flex items-center">
           <Image
-            src={require("@/assets/enwonoAvatar.webp")}
+            src={user?.imageUrl ?? require('@/assets/enwonoAvatar.webp')}
             alt="User Avatar"
             className="rounded-full mr-3"
+            width={32}
+            height={32}
           />
           <div>
-            <span className="text-sm font-medium truncate">{user?.email}</span>
+            <span className="text-sm font-medium truncate">
+              {user?.fullName}
+            </span>
           </div>
-          <Button variant="ghost" size="icon" className="ml-auto">
-            <Image src={require("@/assets/Logout.svg")} alt="logout" />
+          <Button
+            onClick={() => signOut()}
+            variant="ghost"
+            size="icon"
+            className="ml-auto"
+          >
+            <Logout className="size-3.5" />
           </Button>
         </div>
       </SidebarMenuItem>
