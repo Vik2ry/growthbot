@@ -9,7 +9,7 @@ import './globals.css';
 import { ModalProvider } from '@/providers/modal-provider';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chat.vercel.ai'),
+  metadataBase: new URL('https://growthbot.ng'),
   title: "👋 Hi I'm GrowthBot",
   description: 'I help your spiritual growth',
 };

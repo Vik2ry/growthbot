@@ -31,9 +31,9 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   const { onOpen } = useAuthModal();
 
   return (
-    <Sidebar className="flex flex-col bg-white rounded-3xl border p-4 w-80 m-6">
-      <SidebarHeader className="flex-row justify-between mb-6">
-        <SidebarMenu>
+    <Sidebar className="flex flex-col bg-white! rounded-3xl border p-4">
+      <SidebarHeader>
+        <SidebarMenu className="flex-row justify-between mb-6">
           {/* <div className="flex flex-row justify-between items-center">
             <div
               onClick={() => {
@@ -61,10 +61,16 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               </Button>
             </BetterTooltip>
           </div> */}
-          <Image src={require('@/assets/Logo.webp')} alt="GrowthBot" />
+          <div className="flex items-center space-x-2">
+            <div className="text-2xl">🪴</div>
+            <div className="flex items-center">
+              <span className="text-blue-900 font-bold text-xl">Growth</span>
+              <span className="text-gray-500 font-medium text-xl">Bot</span>
+            </div>
+          </div>
           <SidebarToggle />
-          <div className="border-b" />
         </SidebarMenu>
+        <div className="border-b" />
       </SidebarHeader>
       <SidebarContent className="flex-1 pl-6 pt-4 overflow-auto">
         <Button variant="ghost" className="w-full mb-4 justify-start text-md">
@@ -85,7 +91,6 @@ export function AppSidebar({ user }: { user: User | undefined }) {
       <SidebarFooter className="gap-0">
         {user && (
           <>
-            <div className="border-b" />
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarUserNav user={user} />

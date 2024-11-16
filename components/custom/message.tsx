@@ -39,12 +39,12 @@ export const PreviewMessage = ({
     >
       <div
         className={cx(
-          'group-data-[role=user]/message:bg-primary group-data-[role=user]/message:text-primary-foreground flex gap-4 group-data-[role=user]/message:px-3 w-full group-data-[role=user]/message:w-fit group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl group-data-[role=user]/message:py-2 rounded-xl'
+          'group-data-[role=user]/message:bg-muted group-data-[role=user]/message:text-muted-foreground flex gap-4 group-data-[role=user]/message:px-3 w-full group-data-[role=user]/message:w-fit group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl group-data-[role=user]/message:py-2 rounded-xl'
         )}
       >
         {message.role === 'assistant' && (
           <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
-            <SparklesIcon size={14} />
+            🪴
           </div>
         )}
 
@@ -138,6 +138,17 @@ export const PreviewMessage = ({
             vote={vote}
             isLoading={isLoading}
           />
+          {message.role === 'assistant' && (
+            <div className="mt-4 p-4 bg-white">
+              {/* Footer Link */}
+              <div className="mt-4 text-blue-600 text-sm">
+                Ready to help someone grow?{' '}
+                <a href="#" className="underline">
+                  Find a disciple
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
@@ -163,13 +174,11 @@ export const ThinkingMessage = () => {
         )}
       >
         <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
-          <SparklesIcon size={14} />
+          🪴
         </div>
 
-        <div className="flex flex-col gap-2 w-full">
-          <div className="flex flex-col gap-4 text-muted-foreground">
-            Thinking...
-          </div>
+        <div className="flex flex-col gap-2 w-full bg-white shadow-md rounded-xl">
+          <div className="flex flex-col gap-4 text-grey-700">Thinking...</div>
         </div>
       </div>
     </motion.div>
