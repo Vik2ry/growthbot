@@ -138,18 +138,18 @@ export const PreviewMessage = ({
             vote={vote}
             isLoading={isLoading}
           />
-        </div>
-        {message.role === 'assistant' && (
-          <div className="mt-4 p-4 bg-white">
-            {/* Footer Link */}
-            <div className="mt-4 text-blue-600 text-sm">
-              Ready to help someone grow?{' '}
-              <a href="#" className="underline">
-                Find a disciple
-              </a>
+          {message.role === 'assistant' && (
+            <div className="mt-4 p-4 bg-white">
+              {/* Footer Link */}
+              <div className="mt-4 text-blue-600 text-sm">
+                Ready to help someone grow?{' '}
+                <a href="#" className="underline">
+                  Find a disciple
+                </a>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </motion.div>
   );
