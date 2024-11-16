@@ -22,10 +22,13 @@ import { BetterTooltip } from '@/components/ui/tooltip';
 import Image from 'next/image';
 import { Sidebar as SidebarIcon } from 'lucide-react';
 import { SidebarToggle } from './sidebar-toggle';
+import { useAuthModal } from '@/app/(auth)/_components/use-auth-modal';
 
 export function AppSidebar({ user }: { user: User | undefined }) {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
+
+  const { onOpen } = useAuthModal();
 
   return (
     <Sidebar className="flex flex-col bg-white rounded-3xl border p-4 w-80 m-6">
@@ -72,6 +75,8 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           <Image src={require('@/assets/Add.svg')} alt="add" />
           New chat
         </Button>
+
+        <Button onClick={onOpen}>Auth</Button>
         <div className="border-b" />
         <SidebarGroup>
           <SidebarHistory user={user} />

@@ -14,6 +14,39 @@ export const authSchema = z.object({
     }),
 });
 
+export const signupSchema = z
+  .object({
+    firstName: z.string().min(1, {
+      message: 'First name is required',
+    }),
+    lastName: z.string().min(1, {
+      message: 'Last name is required',
+    }),
+    email: z.string().email({
+      message: 'Please enter a valid email address',
+    }),
+    password: z
+      .string()
+      .min(8, {
+        message: 'Password must be at least 8 characters long',
+      })
+      .max(100, {
+        message: 'Password must be at most 100 characters long',
+      }),
+    confirmPassword: z
+      .string()
+      .min(8, {
+        message: 'Password must be at least 8 characters long',
+      })
+      .max(100, {
+        message: 'Password must be at most 100 characters long',
+      }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
 export const verifyEmailSchema = z.object({
   code: z
     .string()
@@ -37,14 +70,3 @@ export const resetPasswordSchema = z
     message: 'Passwords do not match',
     path: ['confirmPassword'],
   });
-
-export const userPrivateMetadataSchema = z.object({
-  stripePriceId: z.string().optional().nullable(),
-  stripeSubscriptionId: z.string().optional().nullable(),
-  stripeCustomerId: z.string().optional().nullable(),
-  stripeCurrentPeriodEnd: z.string().optional().nullable(),
-});
-
-export type UserPrivateMetadataSchema = z.infer<
-  typeof userPrivateMetadataSchema
->;
