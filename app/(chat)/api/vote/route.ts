@@ -1,7 +1,8 @@
 import { getVotesByChatId, voteMessage } from '@/db/queries';
-import { auth } from '@clerk/nextjs/server';
+import { getAuth } from '@clerk/nextjs/server';
+import { NextRequest } from 'next/server';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const chatId = searchParams.get('chatId');
 
@@ -9,18 +10,24 @@ export async function GET(request: Request) {
     return new Response('chatId is required', { status: 400 });
   }
 
-  const session = await auth();
+  try {
+    const { userId } = getAuth(request);
+    console.log('User ID from Clerk:', userId);
 
-  if (!session || !session.userId) {
-    return new Response('Unauthorized', { status: 401 });
+    if (!userId) {
+      console.log('No user ID found, returning 401');
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    const votes = await getVotesByChatId({ id: chatId });
+    return Response.json(votes, { status: 200 });
+  } catch (error) {
+    console.error('Error in GET request:', error);
+    return new Response('Internal Server Error', { status: 500 });
   }
-
-  const votes = await getVotesByChatId({ id: chatId });
-
-  return Response.json(votes, { status: 200 });
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
   const {
     chatId,
     messageId,
@@ -32,9 +39,9 @@ export async function PATCH(request: Request) {
     return new Response('messageId and type are required', { status: 400 });
   }
 
-  const session = await auth();
+  const { userId } = getAuth(request);
 
-  if (!session || !session.userId) {
+  if (!userId) {
     return new Response('Unauthorized', { status: 401 });
   }
 

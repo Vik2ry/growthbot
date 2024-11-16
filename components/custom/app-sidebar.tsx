@@ -77,7 +77,8 @@ export function AppSidebar() {
           <Image src={require('@/assets/Star.svg')} alt="star" /> Discover
           mentor
         </Button>
-        <Button className="w-4/5 mb-6 p-5 bg-[#0F1531] hover:bg-indigo-900 text-white text-md">
+        <Button 
+        className="w-4/5 mb-6 p-5 bg-[#0F1531] hover:bg-indigo-900 text-white text-md">
           <Image src={require('@/assets/Add.svg')} alt="add" />
           New chat
         </Button>
