@@ -149,7 +149,7 @@ export function AuthForm({ type = 'signup', action, children, defaultEmail = '' 
         {type === 'login' ? (
           <>
             Don't have an account?{' '}
-            <Link href="/signup" className="font-semibold text-black hover:underline">
+            <Link href="/register" className="font-semibold text-black hover:underline">
               Sign up
             </Link>
           </>
