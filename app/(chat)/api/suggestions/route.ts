@@ -1,5 +1,5 @@
-import { auth } from '@/app/(auth)/auth';
 import { getSuggestionsByDocumentId } from '@/db/queries';
+import { auth } from '@clerk/nextjs/server';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
 
   const session = await auth();
 
-  if (!session || !session.user) {
+  if (!session || !session.userId) {
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     return Response.json([], { status: 200 });
   }
 
-  if (suggestion.userId !== session.user.id) {
+  if (suggestion.userId !== session.userId) {
     return new Response('Unauthorized', { status: 401 });
   }
 

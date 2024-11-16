@@ -1,9 +1,9 @@
-import { auth } from '@/app/(auth)/auth';
 import {
   deleteDocumentsByIdAfterTimestamp,
   getDocumentsById,
   saveDocument,
 } from '@/db/queries';
+import { auth } from '@clerk/nextjs/server';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
   const session = await auth();
 
-  if (!session || !session.user) {
+  if (!session || !session.sessionId) {
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     return new Response('Not Found', { status: 404 });
   }
 
-  if (document.userId !== session.user.id) {
+  if (document.userId !== session.userId) {
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -51,12 +51,12 @@ export async function POST(request: Request) {
   const { content, title }: { content: string; title: string } =
     await request.json();
 
-  if (session.user && session.user.id) {
+  if (session.userId) {
     const document = await saveDocument({
       id,
       content,
       title,
-      userId: session.user.id,
+      userId: session.userId,
     });
 
     return Response.json(document, { status: 200 });
@@ -77,7 +77,7 @@ export async function PATCH(request: Request) {
 
   const session = await auth();
 
-  if (!session || !session.user) {
+  if (!session || !session.userId) {
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -85,7 +85,7 @@ export async function PATCH(request: Request) {
 
   const [document] = documents;
 
-  if (document.userId !== session.user.id) {
+  if (document.userId !== session.userId) {
     return new Response('Unauthorized', { status: 401 });
   }
 

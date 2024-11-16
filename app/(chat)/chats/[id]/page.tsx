@@ -3,10 +3,10 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 
 import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
-import { auth } from '@/app/(auth)/auth';
 import { Chat as PreviewChat } from '@/components/custom/chat';
 import { getChatById, getMessagesByChatId } from '@/db/queries';
 import { convertToUIMessages } from '@/lib/utils';
+import { auth } from '@clerk/nextjs/server';
 
 export default async function Page(props: { params: Promise<any> }) {
   const params = await props.params;
@@ -19,11 +19,11 @@ export default async function Page(props: { params: Promise<any> }) {
 
   const session = await auth();
 
-  if (!session || !session.user) {
+  if (!session || !session.userId) {
     return notFound();
   }
 
-  if (session.user.id !== chat.userId) {
+  if (session.userId !== chat.userId) {
     return notFound();
   }
 
