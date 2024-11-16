@@ -6,7 +6,7 @@ import { ThemeProvider } from '@/components/custom/theme-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chat.vercel.ai'),
+  metadataBase: new URL('https://growthbot.ng'),
   title: "👋 Hi I'm GrowthBot",
   description: "I help your spiritual growth",
 };

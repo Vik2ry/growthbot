@@ -21,17 +21,18 @@ import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
+import Link from 'next/link';
 
 const suggestedActions = [
   {
-    title: 'What is the weather',
-    label: 'in San Francisco?',
-    action: 'What is the weather in San Francisco?',
+    title: 'Hello GrowthBot,',
+    label: 'I need discipleship',
+    action: 'Hello GrowthBot, I need discipleship',
   },
   {
-    title: 'Help me draft an essay',
-    label: 'about Silicon Valley',
-    action: 'Help me draft a short essay about Silicon Valley',
+    title: 'Hello GrowthBot,',
+    label: 'I want to grow spiritually',
+    action: 'Hello GrowthBot, I want to grow spiritually',
   },
 ];
 
@@ -216,7 +217,7 @@ export function MultimodalInput({
                       content: suggestedAction.action,
                     });
                   }}
-                  className="text-left border rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start"
+                  className="text-left border  bg-white text-black font-medium shadow-md hover:shadow-lg rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start"
                 >
                   <span className="font-medium">{suggestedAction.title}</span>
                   <span className="text-muted-foreground">
@@ -227,6 +228,15 @@ export function MultimodalInput({
             ))}
           </div>
         )}
+      <p className=" flex justify-center mt-6 text-sm text-blue-500">
+        Need someone to help you grow?{' '}
+        <Link
+          href="/find-mentor"
+          className="font-medium underline underline-offset-4"
+        >
+          Find a mentor
+        </Link>
+      </p>
 
       <input
         type="file"
