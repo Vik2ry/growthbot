@@ -3,12 +3,21 @@ import { Toaster } from 'sonner';
 
 import { ThemeProvider } from '@/components/custom/theme-provider';
 
+import {
+  ClerkProvider,
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs';
+
 import './globals.css';
+import { ModalProvider } from '@/providers/modal-provider';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://chat.vercel.ai'),
   title: "👋 Hi I'm GrowthBot",
-  description: "I help your spiritual growth",
+  description: 'I help your spiritual growth',
 };
 
 export const viewport = {
@@ -41,32 +50,35 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      // `next-themes` injects an extra classname to the body element to avoid
-      // visual flicker before hydration. Hence the `suppressHydrationWarning`
-      // prop is necessary to avoid the React hydration mismatch warning.
-      // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
-      suppressHydrationWarning
-    >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: THEME_COLOR_SCRIPT,
-          }}
-        />
-      </head>
-      <body className="antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Toaster position="top-center" />
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html
+        lang="en"
+        // `next-themes` injects an extra classname to the body element to avoid
+        // visual flicker before hydration. Hence the `suppressHydrationWarning`
+        // prop is necessary to avoid the React hydration mismatch warning.
+        // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
+        suppressHydrationWarning
+      >
+        <head>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: THEME_COLOR_SCRIPT,
+            }}
+          />
+        </head>
+        <body className="antialiased">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Toaster position="top-center" />
+            {children}
+            <ModalProvider />
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
