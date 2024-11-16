@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type User } from 'next-auth';
 
 import { PlusIcon } from '@/components/custom/icons';
 import { SidebarHistory } from '@/components/custom/sidebar-history';
@@ -23,12 +22,13 @@ import Image from 'next/image';
 import { Sidebar as SidebarIcon } from 'lucide-react';
 import { SidebarToggle } from './sidebar-toggle';
 import { useAuthModal } from '@/app/(auth)/_components/use-auth-modal';
+import { useUser } from '@clerk/nextjs';
 
-export function AppSidebar({ user }: { user: User | undefined }) {
+export function AppSidebar() {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
 
-  const { onOpen } = useAuthModal();
+  const { user } = useUser();
 
   return (
     <Sidebar className="flex flex-col bg-white! rounded-3xl border p-4">
@@ -82,10 +82,9 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           New chat
         </Button>
 
-        <Button onClick={onOpen}>Auth</Button>
         <div className="border-b" />
         <SidebarGroup>
-          <SidebarHistory user={user} />
+          <SidebarHistory />
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="gap-0">

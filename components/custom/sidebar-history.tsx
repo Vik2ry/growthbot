@@ -3,7 +3,6 @@
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import { type User } from 'next-auth';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
@@ -36,6 +35,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Chat } from '@/db/schema';
 import { fetcher } from '@/lib/utils';
+import { useUser } from '@clerk/nextjs';
 
 type GroupedChats = {
   today: Chat[];
@@ -85,10 +85,13 @@ const ChatItem = ({
   </SidebarMenuItem>
 );
 
-export function SidebarHistory({ user }: { user: User | undefined }) {
+export function SidebarHistory() {
   const { setOpenMobile } = useSidebar();
   const { id } = useParams();
   const pathname = usePathname();
+
+  const { user } = useUser();
+
   const {
     data: history,
     isLoading,
