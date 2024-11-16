@@ -8,7 +8,7 @@ generator client {
 }
 
 model User {
-  id             String       @unique
+  id             String       @id
   image          String?
   chats          Chat[]
   documents      Document[]
@@ -20,7 +20,7 @@ model Chat {
   createdAt DateTime  @default(now())
   title     String
   userId    String
-  user      User      @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages  Message[]
   votes     Vote[]
 }

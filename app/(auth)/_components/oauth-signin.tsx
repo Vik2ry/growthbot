@@ -30,7 +30,7 @@ export function OAuthSignIn() {
       await signIn.authenticateWithRedirect({
         strategy: provider,
         redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/',
+        redirectUrlComplete: '/chats',
       });
     } catch (err) {
       setLoading(null);

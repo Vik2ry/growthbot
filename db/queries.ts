@@ -12,6 +12,7 @@ export async function saveChat({
   userId: string;
   title: string;
 }) {
+
   try {
     return await prisma.chat.create({
       data: {

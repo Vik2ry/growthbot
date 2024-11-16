@@ -9,17 +9,17 @@ export interface Model {
 
 export const models: Array<Model> = [
   {
-    id: 'gpt-4o-mini',
-    label: 'GPT 4o mini',
-    apiIdentifier: 'gpt-4o-mini',
-    description: 'Small model for fast, lightweight tasks',
+    id: 'llama-3.1-70b-versatile',
+    label: 'LLaMA 3.1 70B Versatile',
+    apiIdentifier: 'llama-3.1-70b-versatile',
+    description: 'Highly capable model for a wide range of tasks with large-scale context understanding.',
   },
   {
-    id: 'gpt-4o',
-    label: 'GPT 4o',
-    apiIdentifier: 'gpt-4o',
-    description: 'For complex, multi-step tasks',
+    id: 'llama-3.1-13b-fast',
+    label: 'LLaMA 3.1 13B Fast',
+    apiIdentifier: 'llama-3.1-13b-fast',
+    description: 'Smaller model optimized for speed and lightweight tasks.',
   },
 ] as const;
 
-export const DEFAULT_MODEL_NAME: string = 'gpt-4o-mini';
+export const DEFAULT_MODEL_NAME: string = 'llama-3.1-70b-versatile';

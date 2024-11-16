@@ -1,6 +1,6 @@
 // app/api/chat/route.ts
 
-import { createOpenAI } from '@ai-sdk/openai'
+import { createGroq } from '@ai-sdk/groq'
 import { convertToCoreMessages, StreamData, streamObject, streamText } from 'ai'
 import {
   generateUUID,
@@ -30,9 +30,9 @@ type AllowedTools = 'createDocument' | 'updateDocument' | 'requestSuggestions' |
 
 const allTools: AllowedTools[] = ['createDocument', 'updateDocument', 'requestSuggestions', 'getWeather']
 
-const groq = createOpenAI({
+const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY!,
-  baseURL: 'https://api.groq.com/openai/v1'
+  baseURL: 'https://api.groq.com/groq/v1'
 })
 
 export async function POST(request: Request) {
@@ -74,8 +74,7 @@ export async function POST(request: Request) {
 
   const result = await streamText({
     model: groq('llama-3.1-70b-versatile'),
-    system: systemPrompt,
-    messages: coreMessages,
+    messages: await request.json(),
     maxTokens: 1000,
     temperature: 0.5,
     topP: 1,
