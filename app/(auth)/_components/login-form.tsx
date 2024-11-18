@@ -66,15 +66,15 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form className="grid gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+      <form className="grid gap-1" onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="text-xs font-normal">Email</FormLabel>
               <FormControl>
-                <Input
+                <Input className="max-h-8"
                   type="text"
                   placeholder="rodneymullen180@gmail.com"
                   {...field}
@@ -89,15 +89,15 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel className="text-xs font-normal">Password</FormLabel>
               <FormControl>
-                <PasswordInput placeholder="**********" {...field} />
+                <PasswordInput className="max-h-8" placeholder="**********" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="mt-2" disabled={loading}>
+        <Button type="submit" className="mt-2 bg-[#0F1531]" disabled={loading}>
           {loading && (
             <LoaderIcon
               className="mr-2 size-4 animate-spin"

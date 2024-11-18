@@ -68,15 +68,15 @@ export function SignUpForm() {
 
   return (
     <Form {...form}>
-      <form className="grid gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+      <form className="grid gap-1" onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="text-xs font-normal">Email</FormLabel>
               <FormControl>
-                <Input placeholder="rodneymullen180@gmail.com" {...field} />
+                <Input className="max-h-8" placeholder="rodneymullen180@gmail.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -88,9 +88,9 @@ export function SignUpForm() {
             name="firstName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>First Name</FormLabel>
+                <FormLabel className="text-xs font-normal">First Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="" {...field} />
+                  <Input className="max-h-8" placeholder="" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -101,24 +101,24 @@ export function SignUpForm() {
             name="lastName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Last Name</FormLabel>
+                <FormLabel className="text-xs font-normal">Last Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="" {...field} />
+                  <Input className="max-h-8" placeholder="" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        <div className="grid md:gap-x-6 md:grid-cols-2">
+        <div className="grid md:gap-x-6 md:grid-cols-1">
           <FormField
             control={form.control}
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="text-xs font-normal">Password</FormLabel>
                 <FormControl>
-                  <PasswordInput placeholder="**********" {...field} />
+                  <PasswordInput className="max-h-8" placeholder="**********" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -129,23 +129,23 @@ export function SignUpForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel className="text-xs font-normal">Confirm Password</FormLabel>
                 <FormControl>
-                  <PasswordInput placeholder="**********" {...field} />
+                  <PasswordInput className="max-h-8" placeholder="**********" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        <Button className="mt-2" disabled={loading}>
+        <Button className="mt-2 bg-[#0F1531]" disabled={loading}>
           {loading && (
             <LoaderIcon
               className="mr-2 size-4 animate-spin"
               aria-hidden="true"
             />
           )}
-          Continue
+          Sign up
           <span className="sr-only">Continue to email verification page</span>
         </Button>
       </form>
