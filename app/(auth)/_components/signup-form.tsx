@@ -76,7 +76,7 @@ export function SignUpForm() {
             <FormItem>
               <FormLabel className="text-xs font-normal">Email</FormLabel>
               <FormControl>
-                <Input className="max-h-8" placeholder="rodneymullen180@gmail.com" {...field} />
+                <Input className="max-h-5" placeholder="rodneymullen180@gmail.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -90,7 +90,7 @@ export function SignUpForm() {
               <FormItem>
                 <FormLabel className="text-xs font-normal">First Name</FormLabel>
                 <FormControl>
-                  <Input className="max-h-8" placeholder="" {...field} />
+                  <Input className="max-h-5" placeholder="" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -103,7 +103,7 @@ export function SignUpForm() {
               <FormItem>
                 <FormLabel className="text-xs font-normal">Last Name</FormLabel>
                 <FormControl>
-                  <Input className="max-h-8" placeholder="" {...field} />
+                  <Input className="max-h-5" placeholder="" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -118,7 +118,7 @@ export function SignUpForm() {
               <FormItem>
                 <FormLabel className="text-xs font-normal">Password</FormLabel>
                 <FormControl>
-                  <PasswordInput className="max-h-8" placeholder="**********" {...field} />
+                  <PasswordInput className="max-h-5" placeholder="**********" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -131,7 +131,7 @@ export function SignUpForm() {
               <FormItem>
                 <FormLabel className="text-xs font-normal">Confirm Password</FormLabel>
                 <FormControl>
-                  <PasswordInput className="max-h-8" placeholder="**********" {...field} />
+                  <PasswordInput className="max-h-5" placeholder="**********" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
