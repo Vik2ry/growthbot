@@ -73,12 +73,23 @@ export function AppSidebar() {
         <div className="border-b" />
       </SidebarHeader>
       <SidebarContent className="flex-1 pl-6 pt-4 overflow-auto">
-        <Button variant="ghost" className="w-full mb-4 justify-start text-md">
+        <Button
+          variant="ghost"
+          onClick={() => {
+            router.push('/find-discipler');
+          }}
+          className="w-full mb-4 justify-start text-md"
+        >
           <Image src={require('@/assets/Star.svg')} alt="star" /> Discover
           mentor
         </Button>
-        <Button 
-        className="w-4/5 mb-6 p-5 bg-[#0F1531] hover:bg-indigo-900 text-white text-md">
+        <Button
+          onClick={() => {
+            router.push('/chats');
+            router.refresh();
+          }}
+          className="w-4/5 mb-6 p-5 bg-[#0F1531] hover:bg-indigo-900 text-white text-md"
+        >
           <Image src={require('@/assets/Add.svg')} alt="add" />
           New chat
         </Button>

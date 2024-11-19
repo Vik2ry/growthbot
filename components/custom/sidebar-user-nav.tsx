@@ -28,9 +28,13 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { UserResource } from '@clerk/types';
 import { Logout } from '@/components/icons/logout';
+import { AccountSettingsModal } from '../account-settings-modal';
+import { useState } from 'react';
 
 export function SidebarUserNav({ user }: { user: any }) {
   const { signOut } = useClerk();
+  const [open, setOpen] = useState(false);
+  const toggleOpen = () => setOpen(!open);
 
   return (
     <SidebarMenu>
@@ -79,7 +83,8 @@ export function SidebarUserNav({ user }: { user: any }) {
           <LogOut className="mr-2 h-4 w-4" /> Clear conversations
         </Button>
         <Button variant="ghost" className="w-full justify-start mb-4">
-          <UserIcon className="mr-2 h-4 w-4" /> My account
+          <UserIcon className="mr-2 h-4 w-4" />{' '} My Account
+          <AccountSettingsModal open={false} onOpenChange={toggleOpen} />
         </Button>
         <div className="flex items-center">
           <Image
@@ -94,7 +99,7 @@ export function SidebarUserNav({ user }: { user: any }) {
               {user?.fullName}
             </span>
           </div>
-            <Logout className="ml-auto" onClick={() => signOut()}/>
+          <Logout className="ml-auto" onClick={() => signOut()} />
         </div>
       </SidebarMenuItem>
     </SidebarMenu>
