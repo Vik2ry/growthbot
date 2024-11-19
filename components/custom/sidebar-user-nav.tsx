@@ -29,7 +29,7 @@ import { Separator } from '@/components/ui/separator';
 import { UserResource } from '@clerk/types';
 import { Logout } from '@/components/icons/logout';
 
-export function SidebarUserNav({ user }: { user: UserResource }) {
+export function SidebarUserNav({ user }: { user: any }) {
   const { signOut } = useClerk();
 
   return (

@@ -31,6 +31,7 @@ import { useScrollToBottom } from './use-scroll-to-bottom';
 import { VersionFooter } from './version-footer';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { useUser } from '@clerk/nextjs';
 export interface UIBlock {
   title: string;
   documentId: string;
@@ -242,6 +243,7 @@ export function Block({
 
   const { width: windowWidth, height: windowHeight } = useWindowSize();
   const isMobile = windowWidth ? windowWidth < 768 : false;
+  const { user } = useUser();
 
   const [_, copyToClipboard] = useCopyToClipboard();
 
@@ -292,6 +294,7 @@ export function Block({
             >
               {messages.map((message, index) => (
                 <PreviewMessage
+                user={user}
                   chatId={chatId}
                   key={message.id}
                   message={message}

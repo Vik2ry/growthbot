@@ -17,6 +17,7 @@ import { Block, UIBlock } from './block';
 import { BlockStreamHandler } from './block-stream-handler';
 import { MultimodalInput } from './multimodal-input';
 import { Overview } from './overview';
+import { useUser } from '@clerk/nextjs';
 
 export function Chat({
   id,
@@ -71,6 +72,7 @@ export function Chat({
 
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
+  const { user } = useUser();
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
@@ -104,6 +106,7 @@ export function Chat({
           {messages.map((message, index) => (
             <PreviewMessage
               key={message.id}
+              user={user}
               chatId={id}
               message={message}
               block={block}

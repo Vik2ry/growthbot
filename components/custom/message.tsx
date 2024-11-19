@@ -17,6 +17,7 @@ import { Weather } from './weather';
 
 export const PreviewMessage = ({
   chatId,
+  user,
   message,
   block,
   setBlock,
@@ -24,6 +25,7 @@ export const PreviewMessage = ({
   isLoading,
 }: {
   chatId: string;
+  user: any;
   message: Message;
   block: UIBlock;
   setBlock: Dispatch<SetStateAction<UIBlock>>;
@@ -45,6 +47,12 @@ export const PreviewMessage = ({
         {message.role === 'assistant' && (
           <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
             🪴
+          </div>
+        )}
+
+        {message.role === 'user' && (
+          <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
+            {user?.firstName?.charAt(0).toUpperCase() + user?.lastName?.charAt(0).toUpperCase()}
           </div>
         )}
 
