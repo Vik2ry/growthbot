@@ -22,6 +22,7 @@ import { PreviewAttachment } from './preview-attachment';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import Link from 'next/link';
+import { SendIcon } from 'lucide-react';
 
 const suggestedActions = [
   {
@@ -238,7 +239,7 @@ export function MultimodalInput({
         </Link>
       </p>
 
-      <input
+      {/* <input
         type="file"
         className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
         ref={fileInputRef}
@@ -265,7 +266,7 @@ export function MultimodalInput({
             />
           ))}
         </div>
-      )}
+      )} */}
 
       <Textarea
         ref={textareaRef}
@@ -311,11 +312,11 @@ export function MultimodalInput({
           }}
           disabled={input.length === 0 || uploadQueue.length > 0}
         >
-          <ArrowUpIcon size={14} />
+          <SendIcon size={14} />
         </Button>
       )}
 
-      <Button
+      {/* <Button
         className="rounded-full p-1.5 h-fit absolute bottom-2 right-11 m-0.5 dark:border-zinc-700"
         onClick={(event) => {
           event.preventDefault();
@@ -325,7 +326,7 @@ export function MultimodalInput({
         disabled={isLoading}
       >
         <PaperclipIcon size={14} />
-      </Button>
+      </Button> */}
     </div>
   );
 }

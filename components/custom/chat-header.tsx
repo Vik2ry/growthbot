@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useWindowSize } from 'usehooks-ts';
+import { Bell, MessageCircle } from 'lucide-react';
+import Image from 'next/image';
 
 import { ModelSelector } from '@/components/custom/model-selector';
 import { SidebarToggle } from '@/components/custom/sidebar-toggle';
@@ -11,12 +13,14 @@ import { BetterTooltip } from '@/components/ui/tooltip';
 
 import { PlusIcon, VercelIcon } from './icons';
 import { useSidebar } from '../ui/sidebar';
+import { useUser } from '@clerk/nextjs';
 
 export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
   const router = useRouter();
   const { open } = useSidebar();
 
   const { width: windowWidth } = useWindowSize();
+  const { user } = useUser();
 
   return (
     <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
@@ -36,22 +40,41 @@ export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
           </Button>
         </BetterTooltip>
       )}
-      {/* <ModelSelector
-        selectedModelId={selectedModelId}
-        className="order-1 md:order-2"
-      /> */}
-      {/* <Button
-        className="bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-zinc-50 dark:text-zinc-900 hidden md:flex py-1.5 px-2 h-fit md:h-[34px] order-4 md:ml-auto"
-        asChild
-      >
-        <Link
-          href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fai-chatbot&env=AUTH_SECRET,OPENAI_API_KEY&envDescription=Learn%20more%20about%20how%20to%20get%20the%20API%20Keys%20for%20the%20application&envLink=https%3A%2F%2Fgithub.com%2Fvercel%2Fai-chatbot%2Fblob%2Fmain%2F.env.example&demo-title=AI%20Chatbot&demo-description=An%20Open-Source%20AI%20Chatbot%20Template%20Built%20With%20Next.js%20and%20the%20AI%20SDK%20by%20Vercel.&demo-url=https%3A%2F%2Fchat.vercel.ai&stores=%5B%7B%22type%22:%22postgres%22%7D,%7B%22type%22:%22blob%22%7D%5D"
-          target="_noblank"
-        >
-          <VercelIcon size={16} />
-          Deploy with Vercel
-        </Link>
-      </Button> */}
+      <div className="ml-auto rounded-full p-2 bg-[#f7f7f7] flex items-center gap-4">
+        <BetterTooltip content="Messages">
+          <Button variant="ghost" size="icon" className="h-9 w-9 relative">
+            <svg
+              width="21"
+              height="21"
+              viewBox="0 0 21 21"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18.861 5.5C18.861 4.58334 18.111 3.83334 17.1943 3.83334H3.861C2.94434 3.83334 2.19434 4.58334 2.19434 5.5M18.861 5.5V15.5C18.861 16.4167 18.111 17.1667 17.1943 17.1667H3.861C2.94434 17.1667 2.19434 16.4167 2.19434 15.5V5.5M18.861 5.5L10.5277 11.3333L2.19434 5.5"
+                stroke="#1E1E1E"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+
+            <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-purple-600" />
+          </Button>
+        </BetterTooltip>
+        <BetterTooltip content="Notifications">
+          <Button variant="ghost" size="icon" className="h-9 w-9">
+            <Bell className="h-5 w-5 text-muted-foreground" />
+          </Button>
+        </BetterTooltip>
+        <Image
+          src={user?.imageUrl ?? require('@/assets/enwonoAvatar.webp')}
+          alt="User Avatar"
+          className="rounded-full mr-3"
+          width={32}
+          height={32}
+        />
+      </div>
     </header>
   );
 }

@@ -85,7 +85,21 @@ export function Chat({
             messages.length === 0 ? 'justify-center' : ''
           }`}
         >
-          {messages.length === 0 && <Overview />}
+          {messages.length === 0 && (
+            <Overview
+              chatId={id}
+              input={input}
+              setInput={setInput}
+              handleSubmit={handleSubmit}
+              isLoading={isLoading}
+              stop={stop}
+              attachments={attachments}
+              setAttachments={setAttachments}
+              messages={messages}
+              setMessages={setMessages}
+              append={append}
+            />
+          )}
 
           {messages.map((message, index) => (
             <PreviewMessage
@@ -114,22 +128,6 @@ export function Chat({
             className="shrink-0 min-w-[24px] min-h-[24px]"
           />
         </div>
-
-        <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
-          <MultimodalInput
-            chatId={id}
-            input={input}
-            setInput={setInput}
-            handleSubmit={handleSubmit}
-            isLoading={isLoading}
-            stop={stop}
-            attachments={attachments}
-            setAttachments={setAttachments}
-            messages={messages}
-            setMessages={setMessages}
-            append={append}
-          />
-        </form>
       </div>
 
       <AnimatePresence>

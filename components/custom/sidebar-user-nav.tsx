@@ -94,14 +94,7 @@ export function SidebarUserNav({ user }: { user: UserResource }) {
               {user?.fullName}
             </span>
           </div>
-          <Button
-            onClick={() => signOut()}
-            variant="ghost"
-            size="icon"
-            className="ml-auto"
-          >
-            <Logout className="size-3.5" />
-          </Button>
+            <Logout className="ml-auto" onClick={() => signOut()}/>
         </div>
       </SidebarMenuItem>
     </SidebarMenu>
