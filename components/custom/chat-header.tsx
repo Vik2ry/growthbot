@@ -14,6 +14,8 @@ import { BetterTooltip } from '@/components/ui/tooltip';
 import { PlusIcon, VercelIcon } from './icons';
 import { useSidebar } from '../ui/sidebar';
 import { useUser } from '@clerk/nextjs';
+import { useState } from 'react';
+import { AccountSettingsModal } from '../account-settings-modal';
 
 export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
   const router = useRouter();
@@ -21,6 +23,8 @@ export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
 
   const { width: windowWidth } = useWindowSize();
   const { user } = useUser();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const toggleModal = () => setIsModalOpen((prev) => !prev);
 
   return (
     <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
@@ -70,9 +74,15 @@ export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
         <Image
           src={user?.imageUrl ?? require('@/assets/enwonoAvatar.webp')}
           alt="User Avatar"
-          className="rounded-full mr-3"
+          className="cursor-pointer rounded-full mr-3"
           width={32}
           height={32}
+          onClick={toggleModal}
+        />
+        <AccountSettingsModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          user={user}
         />
       </div>
     </header>

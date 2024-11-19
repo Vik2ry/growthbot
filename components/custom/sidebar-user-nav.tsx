@@ -33,8 +33,8 @@ import { useState } from 'react';
 
 export function SidebarUserNav({ user }: { user: any }) {
   const { signOut } = useClerk();
-  const [open, setOpen] = useState(false);
-  const toggleOpen = () => setOpen(!open);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const toggleModal = () => setIsModalOpen((prev) => !prev);
 
   return (
     <SidebarMenu>
@@ -82,17 +82,21 @@ export function SidebarUserNav({ user }: { user: any }) {
         <Button variant="ghost" className="w-full justify-start mb-2">
           <LogOut className="mr-2 h-4 w-4" /> Clear conversations
         </Button>
-        <Button variant="ghost" className="w-full justify-start mb-4">
-          <UserIcon className="mr-2 h-4 w-4" />{' '} My Account
-          <AccountSettingsModal open={false} onOpenChange={toggleOpen} />
+        <Button
+          variant="ghost"
+          onClick={toggleModal}
+          className="w-full justify-start mb-4"
+        >
+          <UserIcon className="mr-2 h-4 w-4" /> My account
         </Button>
         <div className="flex items-center">
           <Image
             src={user?.imageUrl ?? require('@/assets/enwonoAvatar.webp')}
             alt="User Avatar"
-            className="rounded-full mr-3"
+            className="cursor-pointer rounded-full mr-3"
             width={32}
             height={32}
+            onClick={toggleModal}
           />
           <div>
             <span className="text-sm font-medium truncate">
@@ -101,6 +105,11 @@ export function SidebarUserNav({ user }: { user: any }) {
           </div>
           <Logout className="ml-auto" onClick={() => signOut()} />
         </div>
+        <AccountSettingsModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          user={user}
+        />
       </SidebarMenuItem>
     </SidebarMenu>
   );
