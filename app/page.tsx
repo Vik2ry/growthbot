@@ -181,13 +181,15 @@ export default function Home() {
               Join thousands of others who are deepening their faith with
               SpiritualGrowth
             </p>
-            <Button
-              size="lg"
-              className="bg-[#0F1531] hover:bg-[#0a2647] text-white"
-            >
-              Sign Up Now
+            <Link href={redirects.toSignup}>
+              <Button
+                size="lg"
+                className="bg-[#0F1531] hover:bg-[#0a2647] text-white"
+              >
+                Sign Up Now
+              </Button>
               <Heart className="ml-2 h-4 w-4" />
-            </Button>
+            </Link>
           </div>
         </section>
       </main>
