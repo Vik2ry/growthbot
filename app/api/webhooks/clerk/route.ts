@@ -2,6 +2,8 @@ import { Webhook } from 'svix';
 import { headers } from 'next/headers';
 import { WebhookEvent } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
+import { createUser } from '@/lib/users';
+import { User } from '@prisma/client';
 
 export async function POST(req: Request) {
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
@@ -50,28 +52,47 @@ export async function POST(req: Request) {
   const eventType = evt.type;
 
   if (eventType === 'user.created') {
-    await prisma.user.create({
-      data: {
-        id: payload.data.id!,
-        image: payload.data.profile_image_url,
-      },
+    const { id, email_addresses, first_name, last_name, image_url } = evt.data
+    console.log('Event data:', evt.data);
+
+    if (!id || !email_addresses) {
+      return new Response('Error occurred -- missing data', {
+        status: 400
+      })
+    }
+
+    const user = {
+      clerkUserId: id,
+      email: email_addresses[0].email_address,
+      ...(first_name ? { first_name } : {}),
+      ...(last_name ? { last_name } : {}),
+      ...(image_url ? { imageUrl: image_url } : {})
+    };
+    
+    const existingUser = await prisma.user.findUnique({
+      where: { clerkUserId: id },
     });
+    if (existingUser) {
+      return new Response('User already exists', { status: 200 });
+    }    
+
+    await createUser(user as User)
   }
 
-  if (eventType === 'user.updated') {
-    await prisma.user.update({
-      where: { id: payload.data.id! },
-      data: {
-        image: payload.data.profile_image_url,
-      },
-    });
-  }
+  // if (eventType === 'user.updated') {
+  //   await prisma.user.update({
+  //     where: { id: payload.data.id! },
+  //     data: {
+  //       image: payload.data.profile_image_url,
+  //     },
+  //   });
+  // }
 
-  if (eventType === 'user.deleted') {
-    await prisma.user.delete({
-      where: { id: payload.data.id! },
-    });
-  }
+  // if (eventType === 'user.deleted') {
+  //   await prisma.user.delete({
+  //     where: { id: payload.data.id! },
+  //   });
+  // }
 
-  return new Response('', { status: 200 });
+  return new Response('User created successfully', { status: 200 });
 }

@@ -8,7 +8,8 @@ import { getChatById, getMessagesByChatId } from '@/db/queries';
 import { convertToUIMessages } from '@/lib/utils';
 import { auth } from '@clerk/nextjs/server';
 
-export default async function Page({ params }: { params: { id: string } }) {
+export default async function Page(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const { id } = params;
 
   // Fetch the chat data
