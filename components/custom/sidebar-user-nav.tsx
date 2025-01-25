@@ -31,7 +31,7 @@ import { Logout } from '@/components/icons/logout';
 import { AccountSettingsModal } from '../account-settings-modal';
 import { useState } from 'react';
 
-export function SidebarUserNav({ user }: { user: any }) {
+export async function SidebarUserNav({ user }: { user: any }) {
   const { signOut } = useClerk();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const toggleModal = () => setIsModalOpen((prev) => !prev);

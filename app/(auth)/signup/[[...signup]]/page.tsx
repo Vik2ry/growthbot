@@ -1,15 +1,13 @@
 import { type Metadata } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
-import { OAuthSignIn } from '@/app/(auth)/_components/oauth-signin';
-import { SignUpForm } from '@/app/(auth)/_components/signup-form';
+import { SignUp } from '@clerk/nextjs';
 
 export const metadata: Metadata = {
   title: 'Sign Up',
-  description: 'Sign up for an account',
+  description: 'Sign up to your account',
 };
 
-export default function SignUpPage() {
+export default function SignInPage() {
   return (
     <div className="relative min-h-screen w-full">
       <Image
@@ -31,37 +29,8 @@ export default function SignUpPage() {
           />
         </div>
       </div>
-      <div className="relative flex flex-col items-center min-h-screen md:min-h-0 md:block md:-left-[15%] md:pt-20 px-4 md:px-0">
-        <div className="w-full max-w-[440px] mx-auto md:ml-auto md:mr-0 rounded-lg bg-white p-5 shadow-lg">
-          <div className="flex justify-center items-center mb-2">
-            <div className="text-md">🪴</div>
-            <div className="flex items-center">
-              <span className="text-blue-900 font-bold text-md">Growth</span>
-              <span className="text-gray-500 font-medium text-md">Bot</span>
-            </div>
-          </div>
-          <h2 className="text-lg font-normal mb-3 text-center">Sign up</h2>
-          <div>
-            <SignUpForm />
-            <div className="relative py-3">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-md uppercase">
-                <span className="bg-white px-2 text-gray-500">OR</span>
-              </div>
-            </div>
-            <OAuthSignIn />
-          </div>
-        </div>
-        <div className="w-full max-w-[440px] mx-auto md:ml-auto md:mr-0 mt-4 rounded-lg bg-white px-5 py-3 shadow-lg">
-          <div className="text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link href="/signin" className="text-blue-900 underline">
-              Sign in
-            </Link>
-          </div>
-        </div>
+      <div className="relative flex-col items-center justify-center min-h-screen md:min-h-0 md:flex-row md:left-[55%] md:items-start md:pt-20 px-4 md:px-0">
+        <SignUp />
       </div>
     </div>
   );

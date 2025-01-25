@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { MessageCircle, Users, Book, Heart, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 
 export default function Home() {
   return (
@@ -131,13 +132,15 @@ export default function Home() {
               can guide you on your spiritual journey.
             </p>
             <div className="flex justify-center">
-              <Button
-                variant="secondary"
-                size="lg"
-                className="bg-white text-[#0a2647] hover:bg-gray-100"
+              <Link
+                href="/find-discipler"
+                className={cn(
+                  buttonVariants({ variant: 'secondary', size: 'lg' }),
+                  'bg-white text-[#0a2647] hover:bg-gray-100'
+                )}
               >
                 Find a Mentor
-              </Button>
+              </Link>
             </div>
           </div>
         </section>
@@ -182,13 +185,16 @@ export default function Home() {
               SpiritualGrowth
             </p>
             <Link href={redirects.toSignup}>
-              <Button
-                size="lg"
-                className="bg-[#0F1531] hover:bg-[#0a2647] text-white"
+              <Link
+                href={redirects.toSignup}
+                className={cn(
+                  buttonVariants({ variant: 'default', size: 'lg' }),
+                  'bg-[#0F1531] hover:bg-[#0a2647] text-white inline-flex items-center'
+                )}
               >
                 Sign Up Now
-              </Button>
-              <Heart className="ml-2 h-4 w-4" />
+                <Heart className="ml-2 h-4 w-4" />
+              </Link>
             </Link>
           </div>
         </section>

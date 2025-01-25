@@ -6,7 +6,6 @@ import { ThemeProvider } from '@/components/custom/theme-provider';
 import { ClerkProvider } from '@clerk/nextjs';
 
 import './globals.css';
-import { ModalProvider } from '@/providers/modal-provider';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://growthbot.ng'),
@@ -69,7 +68,6 @@ export default async function RootLayout({
           >
             <Toaster position="top-center" />
             {children}
-            <ModalProvider />
           </ThemeProvider>
         </body>
       </html>

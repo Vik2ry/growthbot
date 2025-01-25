@@ -1,5 +1,5 @@
+import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
-import { genSaltSync, hashSync } from 'bcrypt-ts';
 
 const prisma = new PrismaClient();
 

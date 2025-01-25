@@ -21,7 +21,6 @@ import { BetterTooltip } from '@/components/ui/tooltip';
 import Image from 'next/image';
 import { Sidebar as SidebarIcon } from 'lucide-react';
 import { SidebarToggle } from './sidebar-toggle';
-import { useAuthModal } from '@/app/(auth)/_components/use-auth-modal';
 import { useUser } from '@clerk/nextjs';
 
 export function AppSidebar() {
