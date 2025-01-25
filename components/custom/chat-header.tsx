@@ -13,7 +13,7 @@ import { BetterTooltip } from '@/components/ui/tooltip';
 
 import { PlusIcon, VercelIcon } from './icons';
 import { useSidebar } from '../ui/sidebar';
-import { useUser } from '@clerk/nextjs';
+import { UserButton, useUser } from '@clerk/nextjs';
 import { useState } from 'react';
 import { AccountSettingsModal } from '../account-settings-modal';
 
@@ -71,14 +71,18 @@ export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
             <Bell className="h-5 w-5 text-muted-foreground" />
           </Button>
         </BetterTooltip>
-        <Image
-          src={user?.imageUrl ?? require('@/assets/enwonoAvatar.webp')}
-          alt="User Avatar"
-          className="cursor-pointer rounded-full mr-3"
-          width={32}
-          height={32}
-          onClick={toggleModal}
-        />
+        {!user ? (
+          <Image
+            src={require('@/assets/enwonoAvatar.webp')}
+            alt="User Avatar"
+            className="cursor-pointer rounded-full mr-3"
+            width={32}
+            height={32}
+            onClick={toggleModal}
+          />
+        ) : (
+          <UserButton />
+        )}
         <AccountSettingsModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}

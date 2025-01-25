@@ -22,7 +22,7 @@ import {
   Plus,
   User as UserIcon,
 } from 'lucide-react';
-import { useClerk } from '@clerk/nextjs';
+import { useClerk, UserButton } from '@clerk/nextjs';
 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -31,7 +31,7 @@ import { Logout } from '@/components/icons/logout';
 import { AccountSettingsModal } from '../account-settings-modal';
 import { useState } from 'react';
 
-export async function SidebarUserNav({ user }: { user: any }) {
+export function SidebarUserNav({ user }: { user: any }) {
   const { signOut } = useClerk();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const toggleModal = () => setIsModalOpen((prev) => !prev);
@@ -90,16 +90,20 @@ export async function SidebarUserNav({ user }: { user: any }) {
           <UserIcon className="mr-2 h-4 w-4" /> My account
         </Button>
         <div className="flex items-center">
+        {!user ? (
           <Image
-            src={user?.imageUrl ?? require('@/assets/enwonoAvatar.webp')}
+            src={require('@/assets/enwonoAvatar.webp')}
             alt="User Avatar"
-            className="cursor-pointer rounded-full mr-3"
+            className="cursor-pointer rounded-full"
             width={32}
             height={32}
             onClick={toggleModal}
           />
+        ) : (
+          <UserButton />
+        )}
           <div>
-            <span className="text-sm font-medium truncate">
+            <span className="ml-3 text-sm font-medium truncate">
               {user?.fullName}
             </span>
           </div>

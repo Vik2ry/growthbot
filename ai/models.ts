@@ -9,9 +9,9 @@ export interface Model {
 
 export const models: Array<Model> = [
   {
-    id: 'llama-3.1-70b-versatile',
+    id: 'llama-3.3-70b-versatile',
     label: 'LLaMA 3.1 70B Versatile',
-    apiIdentifier: 'llama-3.1-70b-versatile',
+    apiIdentifier: 'llama-3.3-70b-versatile',
     description: 'Highly capable model for a wide range of tasks with large-scale context understanding.',
   },
   {
@@ -22,4 +22,4 @@ export const models: Array<Model> = [
   },
 ] as const;
 
-export const DEFAULT_MODEL_NAME: string = 'llama-3.1-70b-versatile';
+export const DEFAULT_MODEL_NAME: string = 'llama-3.3-70b-versatile';

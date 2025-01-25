@@ -23,6 +23,7 @@ import { z } from 'zod'
 import { customModel } from '@/ai'
 import { Suggestion } from '@/db/schema'
 import { auth } from '@clerk/nextjs/server';
+import { NextRequest } from 'next/server'
 
 export const maxDuration = 60
 
@@ -32,50 +33,51 @@ const allTools: AllowedTools[] = ['createDocument', 'updateDocument', 'requestSu
 
 const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY!,
-  baseURL: 'https://api.groq.com/groq/v1'
+  baseURL: 'https://api.groq.com/openai/v1'
 })
 
-export async function POST(request: Request) {
-  const { id, messages, modelId } = await request.json()
+export async function POST(request: NextRequest) {
+  const requestBody = await request.json(); // Read the request body only once
+  const { id, messages, modelId } = requestBody;
 
-  const session = await auth()
+  const session = await auth();
 
   if (!session || !session.sessionId) {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  const model = models.find((model) => model.id === modelId)
+  const model = models.find((model) => model.id === modelId);
 
   if (!model) {
-    return new Response('Model not found', { status: 404 })
+    return new Response('Model not found', { status: 404 });
   }
 
-  const coreMessages = convertToCoreMessages(messages)
-  const userMessage = getMostRecentUserMessage(coreMessages)
+  const coreMessages = convertToCoreMessages(messages);
+  const userMessage = getMostRecentUserMessage(coreMessages);
 
   if (!userMessage) {
-    return new Response('No user message found', { status: 400 })
+    return new Response('No user message found', { status: 400 });
   }
 
-  const chat = await getChatById({ id })
+  const chat = await getChatById({ id });
 
   if (!chat) {
-    const title = await generateTitleFromUserMessage({ message: userMessage })
-    await saveChat({ id, userId: session.userId, title })
+    const title = await generateTitleFromUserMessage({ message: userMessage });
+    await saveChat({ id, userId: session.userId, title });
   }
 
   await saveMessages({
     messages: [
       { ...userMessage, id: generateUUID(), createdAt: new Date(), chatId: id },
     ],
-  })
+  });
 
-  const streamingData = new StreamData()
+  const streamingData = new StreamData();
 
   const result = await streamText({
-    model: groq('llama-3.1-70b-versatile'),
+    model: groq('llama-3.3-70b-versatile'),
     system: systemPrompt,
-    messages: await request.json(),
+    messages: coreMessages, // Use `coreMessages` instead of re-parsing the body
     maxTokens: 1000,
     temperature: 0.5,
     topP: 1,
@@ -83,14 +85,15 @@ export async function POST(request: Request) {
     onFinish: async ({ responseMessages }) => {
       if (session.sessionId && session.userId) {
         try {
-          const responseMessagesWithoutIncompleteToolCalls = sanitizeResponseMessages(responseMessages)
+          const responseMessagesWithoutIncompleteToolCalls =
+            sanitizeResponseMessages(responseMessages);
           await saveMessages({
             messages: responseMessagesWithoutIncompleteToolCalls.map((message) => {
-              const messageId = generateUUID()
+              const messageId = generateUUID();
               if (message.role === 'assistant') {
                 streamingData.appendMessageAnnotation({
                   messageIdFromServer: messageId,
-                })
+                });
               }
               return {
                 id: messageId,
@@ -98,27 +101,28 @@ export async function POST(request: Request) {
                 role: message.role,
                 content: message.content,
                 createdAt: new Date(),
-              }
+              };
             }),
-          })
+          });
         } catch (error) {
-          console.error('Failed to save chat')
+          console.error('Failed to save chat');
         }
       }
-      streamingData.close()
+      streamingData.close();
     },
     experimental_telemetry: {
       isEnabled: true,
       functionId: 'stream-text',
     },
-  })
+  });
 
   return result.toDataStreamResponse({
     data: streamingData,
-  })
+  });
 }
 
-export async function DELETE(request: Request) {
+
+export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
 
