@@ -1,7 +1,7 @@
 import { StreamChat } from "stream-chat"
 import { auth } from "@clerk/nextjs/server"
 
-const streamClient = new StreamChat(process.env.STREAM_KEY!)
+const streamClient = new StreamChat(process.env.NEXT_PUBLIC_STREAM_API_KEY!)
 
 export async function POST() {
   try {
