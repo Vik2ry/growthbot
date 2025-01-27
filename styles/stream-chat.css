@@ -1,0 +1,49 @@
+.str-chat {
+  --str-chat__primary-color: #0f1531;
+  --str-chat__active-primary-color: #0f1531;
+  --str-chat__secondary-color: #f3f4f6;
+  --str-chat__primary-surface-color: white;
+  --str-chat__primary-surface-color-low-emphasis: #f3f4f6;
+  font-family: var(--font-sans);
+}
+
+.str-chat__container {
+  background: white;
+}
+
+.str-chat__message-list {
+  background: white;
+  padding: 1rem;
+}
+
+.str-chat__message-input {
+  background: white;
+  border: none;
+  padding: 0;
+}
+
+.str-chat__input-flat {
+  background: white;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.str-chat__message-attachment {
+  margin: 0;
+}
+
+.str-chat__message-attachment-card {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.str-chat .str-chat__list {
+  padding: 0;
+  background: white;
+}
+
+.str-chat__date-separator {
+  display: none;
+}
+
