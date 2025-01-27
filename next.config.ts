@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config) => {
+    config.resolve.alias['node:async_hooks'] = 'async_hooks';
+    return config;
+  },
 };
 
 export default nextConfig;
