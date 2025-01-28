@@ -1,96 +1,127 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Search, Bell, MessageCircle, MoreVertical } from "lucide-react"
-import { useUser, useClerk } from "@clerk/nextjs"
-import { useRouter } from "next/navigation"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { clerkClient, User as Users } from "@clerk/nextjs/server"
+import { useState, useEffect } from 'react';
+import { Search, Bell, MessageCircle, MoreVertical } from 'lucide-react';
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { EmailAddress, PhoneNumber, User } from '@clerk/nextjs/server';
 
-interface User {
-  id: string
-  firstName: string
-  lastName: string
-  imageUrl: string
+interface UserData extends User {
+  primaryEmailAddress: EmailAddress | null;
+  primaryPhoneNumber: PhoneNumber | null;
+  primaryWeb3Wallet: null;
+  fullName: string | null;
   metadata: {
-    tags?: string[]
-    rating?: number
-    bio?: string
-    stagesCompleted?: number
-    disciples?: number
-    responses?: number
-  }
+    tags?: string[];
+    rating?: number;
+    bio?: string;
+    stagesCompleted?: number;
+    disciples?: number;
+    responses?: number;
+  };
 }
 
 export default function FindMentorPageComponent() {
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [userList, setUserList] = useState<Users[]>([]) // Use Users type here
-  const [searchQuery, setSearchQuery] = useState("")
-  const { user: currentUser } = useUser()
-  const router = useRouter()
+  const [loading, setLoading] = useState(false);
+  const [userList, setUserList] = useState<UserData[]>([]); // Use Users type here
+  const [searchQuery, setSearchQuery] = useState('');
+  const { user: currentUser } = useUser();
+  const router = useRouter();
+
+  const defaultMetadata = (user: UserData): UserData['metadata'] => ({
+    tags: Array.isArray(user.metadata?.tags)
+      ? user.metadata.tags
+      : ['Love', 'Community', 'Bible'],
+    rating:
+      typeof user.metadata?.rating === 'number' ? user.metadata.rating : 3,
+    bio:
+      typeof user.metadata?.bio === 'string'
+        ? user.metadata.bio
+        : 'No bio available',
+    stagesCompleted:
+      typeof user.metadata?.stagesCompleted === 'number'
+        ? user.metadata.stagesCompleted
+        : 3,
+    disciples:
+      typeof user.metadata?.disciples === 'number'
+        ? user.metadata.disciples
+        : 15,
+    responses:
+      typeof user.metadata?.responses === 'number'
+        ? user.metadata.responses
+        : 1000,
+  });
 
   useEffect(() => {
-    const fetchUserList = async () => {
+    const fetchUserList = async (): Promise<void> => {
+      setLoading(true);
       try {
-        const response = await clerkClient.users.getUserList()
-        setUserList(response.data)
+        const response = await fetch('/api/users');
+        const data: {
+          success: boolean;
+          data: { data: UserData[] };
+          message?: string;
+        } = await response.json();
+
+        if (data.success) {
+          const usersWithDefaultMetadata = data.data.data.map(
+            (user: UserData) => ({
+              ...user,
+              metadata: defaultMetadata(user),
+            })
+          );
+
+          if (currentUser) {
+            const filteredUsers = usersWithDefaultMetadata.filter(
+              (user: UserData) => user.id !== currentUser.id
+            );
+            setUserList(filteredUsers);
+          } else {
+            setUserList(usersWithDefaultMetadata);
+          }
+        } else {
+          console.error('Failed to fetch users:', data.message);
+        }
       } catch (error) {
-        console.error("Error fetching user list:", error)
+        console.error('Error fetching user list:', error);
+      } finally {
+        setLoading(false);
       }
-    }
-    fetchUserList()
-  }, [])
-
-  useEffect(() => {
-    const mapUsers = () => {
-      const filteredUsers = userList
-        .filter((user) => user.id !== currentUser?.id)
-        .map((user) => ({
-          id: user.id,
-          firstName: user.firstName || "Anonymous",
-          lastName: user.lastName || "",
-          imageUrl: user.imageUrl || "",
-          metadata: {
-            tags: Array.isArray(user.publicMetadata.tags) ? user.publicMetadata.tags : ["Love", "Community", "Bible"],
-            rating: typeof user.publicMetadata.rating === 'number' ? user.publicMetadata.rating : 3,
-            bio: typeof user.publicMetadata.bio === 'string' ? user.publicMetadata.bio : "No bio available",
-            stagesCompleted: typeof user.publicMetadata.stagesCompleted === 'number' ? user.publicMetadata.stagesCompleted : 3,
-            disciples: typeof user.publicMetadata.disciples === 'number' ? user.publicMetadata.disciples : 15,
-            responses: typeof user.publicMetadata.responses === 'number' ? user.publicMetadata.responses : 1000,
-          },
-        }))
-      setUsers(filteredUsers)
-      setLoading(false)
-    }
-
-    if (currentUser && userList.length > 0) {
-      mapUsers()
-    }
-  }, [currentUser, userList])
+    };
+    fetchUserList();
+  }, [currentUser]);
 
   const handleStartChat = (userId: string) => {
     // Example: Assuming you have router initialized
-    router.push(`/find-discipler/${userId}`)
-  }
+    router.push(`/find-discipler/${userId}`);
+  };
 
-  const filteredUsers = users.filter(
+  const filteredUsers = userList.filter(
     (user) =>
-      user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.metadata.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())),
-  )
+      user.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.metadata.tags?.some((tag) =>
+        tag.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+  );
 
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -103,7 +134,7 @@ export default function FindMentorPageComponent() {
               <div className="relative">
                 <MessageCircle className="h-6 w-6 text-gray-600" />
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-purple-600 rounded-full text-[10px] flex items-center justify-center text-white">
-                  {users.length}
+                  {userList.length}
                 </span>
               </div>
               <Bell className="h-6 w-6 text-gray-600" />
@@ -114,8 +145,9 @@ export default function FindMentorPageComponent() {
             </div>
           </div>
           <p className="text-gray-600 mt-2 text-center max-w-2xl mx-auto">
-            Find mentors to help in your growth. Browse available mentors find a match, prayerfully consider then and
-            when you are sure feel free to send them a chat
+            Find mentors to help in your growth. Browse available mentors find a
+            match, prayerfully consider then and when you are sure feel free to
+            send them a chat
           </p>
           <div className="mt-6 relative max-w-xl mx-auto">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -139,7 +171,9 @@ export default function FindMentorPageComponent() {
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage src={user.imageUrl} />
-                        <AvatarFallback>{user.firstName[0]}</AvatarFallback>
+                        <AvatarFallback>
+                          {user.firstName?.[0] ?? 'A'}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
                         <h3 className="font-semibold">{`${user.firstName} ${user.lastName}`}</h3>
@@ -151,7 +185,7 @@ export default function FindMentorPageComponent() {
                         .map((_, i) => (
                           <span
                             key={i}
-                            className={`text-lg ${i < (user?.metadata?.rating ?? 0) ? "text-yellow-400" : "text-gray-300"}`}
+                            className={`text-lg ${i < (user?.metadata?.rating ?? 0) ? 'text-yellow-400' : 'text-gray-300'}`}
                           >
                             ★
                           </span>
@@ -172,7 +206,9 @@ export default function FindMentorPageComponent() {
                   <div className="flex flex-col items-center gap-4">
                     <Avatar className="h-20 w-20">
                       <AvatarImage src={user.imageUrl} />
-                      <AvatarFallback>{user.firstName[0]}</AvatarFallback>
+                      <AvatarFallback>
+                        {user.firstName?.[0] ?? 'A'}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="text-center">
                       <DialogTitle className="mb-2">{`${user.firstName} ${user.lastName}`}</DialogTitle>
@@ -189,15 +225,23 @@ export default function FindMentorPageComponent() {
                 <div className="mt-4 space-y-4">
                   <div className="flex justify-center gap-8 text-center">
                     <div>
-                      <div className="text-xl font-semibold">{user.metadata.stagesCompleted}⭐</div>
-                      <div className="text-sm text-gray-500">Stages completed</div>
+                      <div className="text-xl font-semibold">
+                        {user.metadata.stagesCompleted}⭐
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Stages completed
+                      </div>
                     </div>
                     <div>
-                      <div className="text-xl font-semibold">{user.metadata.disciples}</div>
+                      <div className="text-xl font-semibold">
+                        {user.metadata.disciples}
+                      </div>
                       <div className="text-sm text-gray-500">Disciples</div>
                     </div>
                     <div>
-                      <div className="text-xl font-semibold">{user.metadata.responses}</div>
+                      <div className="text-xl font-semibold">
+                        {user.metadata.responses}
+                      </div>
                       <div className="text-sm text-gray-500">Responses</div>
                     </div>
                   </div>
@@ -227,6 +271,5 @@ export default function FindMentorPageComponent() {
         )}
       </main>
     </div>
-  )
+  );
 }
-
