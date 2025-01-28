@@ -4,10 +4,17 @@ import { getStreamToken } from "@/app/actions/get-stream-token"
 export const streamClient = new StreamChat(process.env.NEXT_PUBLIC_STREAM_API_KEY!)
 
 export async function connectToStream(userId: string, userName: string) {
-  try {
-    // Get token from server action instead of creating it client-side
-    const token = await getStreamToken(userId)
+  console.log("Connecting to Stream:", { userId, userName })
 
+  try {
+    // Disconnect any existing user first
+    await streamClient.disconnectUser()
+
+    // Get token from server action
+    const token = await getStreamToken(userId)
+    console.log("Got token from server")
+
+    // Connect user
     await streamClient.connectUser(
       {
         id: userId,
@@ -15,6 +22,7 @@ export async function connectToStream(userId: string, userName: string) {
       },
       token,
     )
+    console.log("User connected successfully")
 
     return streamClient
   } catch (error) {
@@ -22,4 +30,3 @@ export async function connectToStream(userId: string, userName: string) {
     throw error
   }
 }
-
