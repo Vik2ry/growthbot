@@ -12,7 +12,7 @@ import {
   useChannelStateContext,
   useMessageInputContext,
 } from 'stream-chat-react';
-import type { StreamChat as StreamChatType } from 'stream-chat';
+import { StreamChat, StreamChat as StreamChatType } from 'stream-chat';
 import { useClerk, useUser } from '@clerk/nextjs';
 import { Send, MoreVertical } from 'lucide-react';
 import { connectToStream } from '@/lib/stream';
@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { getStreamToken } from '@/app/actions/get-stream-token';
 
 import 'stream-chat-react/dist/css/v2/index.css';
 
@@ -165,51 +166,66 @@ function CustomChannelHeader() {
 }
 
 interface StreamChatProps {
-  id: string;
+  id: string
 }
 
-export function StreamChat({ id }: StreamChatProps) {
-  const { user } = useUser();
-  const [client, setClient] = useState<StreamChatType | null>(null);
-  const [channel, setChannel] = useState<any>(null);
+export function StreamChatView({ id }: StreamChatProps) {
+  const { user } = useUser()
+  const [client, setClient] = useState<StreamChatType | null>(null)
+  const [channel, setChannel] = useState<any>(null)
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) return
 
     const initChat = async () => {
-      const streamClient = await connectToStream(
-        user.id,
-        user.username || 'Anonymous'
-      );
+      try {
+        const streamClient = await connectToStream(user.id, user.username || "Anonymous")
 
-      const channel = streamClient.channel('messaging', id, {
-        name: `Chat ${id}`,
-        members: [user.id],
-      });
+        // Create a new channel or get existing one
+        const channel = streamClient.channel("messaging", id, {
+          name: `Chat ${id}`,
+          members: [user.id],
+          created_by: { id: user.id },
+        })
 
-      await channel.watch();
+        try {
+          // Try to watch the channel first
+          await channel.watch()
+        } catch (error) {
+          // If watching fails (channel doesn't exist), create it
+          if ((error as Error).message.includes("channel not found")) {
+            await channel.create()
+            await channel.watch()
+          } else {
+            throw error
+          }
+        }
 
-      setClient(streamClient);
-      setChannel(channel);
-    };
+        setClient(streamClient)
+        setChannel(channel)
+      } catch (error) {
+        console.error("Error in initChat:", error)
+      }
+    }
 
-    initChat();
+    initChat()
 
     return () => {
       if (client) {
-        client.disconnectUser();
-        setClient(null);
-        setChannel(null);
+        client.disconnectUser()
+        setClient(null)
+        setChannel(null)
       }
-    };
-  }, [user?.id, user?.username, id, client]);
+    }
+  }, [user?.id, user?.username, id, client]) // Added client to dependencies
 
   if (!client || !channel) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]"></div>
+        <p className="ml-2">Connecting to chat...</p>
       </div>
-    );
+    )
   }
 
   return (
@@ -226,5 +242,7 @@ export function StreamChat({ id }: StreamChatProps) {
         </Channel>
       </Chat>
     </div>
-  );
+  )
 }
+
+export default StreamChatView;

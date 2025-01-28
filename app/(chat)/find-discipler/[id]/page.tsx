@@ -1,17 +1,12 @@
-import { redirect } from "next/navigation"
-import { auth } from "@clerk/nextjs/server"
-import { StreamChat } from "@/components/custom/stream-chat"
+"use client"
 
-export default async function Page(props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const { id } = params
+import { use, useEffect, useState } from "react"
+import { StreamChatView } from "@/components/custom/stream-chat"
 
-  // Authenticate the user
-  const session = await auth()
-  if (!session || !session.userId) {
-    redirect("/chats")
-  }
+export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
+  // Properly unwrap params
+  const resolvedParams = use(params)
 
-  // Render the Stream chat component
-  return <StreamChat id={id} />
+  return <StreamChatView id={resolvedParams.id} />
 }
+
