@@ -12,13 +12,20 @@ import {
   useMessageInputContext,
 } from 'stream-chat-react';
 import type { StreamChat as StreamChatType } from 'stream-chat';
-import { useUser } from '@clerk/nextjs';
+import { UserButton, useUser } from '@clerk/nextjs';
 import { connectToStream } from '@/lib/stream';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Send, MoreVertical, Smile, Paperclip, X } from 'lucide-react';
+import {
+  Send,
+  MoreVertical,
+  Smile,
+  Paperclip,
+  X,
+  Bell,
+  MessageSquare,
+} from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -27,49 +34,54 @@ import {
 import 'stream-chat-react/dist/css/v2/index.css';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
+import { BetterTooltip } from './ui/tooltip';
+import { AccountSettingsModal } from './account-settings-modal';
+import Image from 'next/image';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 function CustomMessage({ userData }: { userData: any }) {
-  const { message, isMyMessage } = useMessageContext();
-  const { user } = useUser(); // Get current Clerk user
+  const { message } = useMessageContext()
+  const { user } = useUser() // Get current Clerk user
 
-  // Use current Clerk user’s avatar for messages from others
-  const messageUser =
-    message.user?.id === userData?.id
-      ? userData
-      : { ...message.user, imageUrl: message.user?.imageUrl || user?.imageUrl };
+  const isMyMessage = message.user?.id === user?.id
 
-  const hasAttachments = message.attachments && message.attachments.length > 0;
+  // Determine the message user
+  const messageUser = isMyMessage ? user : message.user
+
+  const hasAttachments = message.attachments && message.attachments.length > 0
 
   return (
-    <div
-      className={`flex ${isMyMessage() ? 'justify-end' : 'justify-start'} mb-4`}
-    >
-      <div
-        className={`flex ${isMyMessage() ? 'flex-row-reverse' : 'flex-row'} items-start gap-2 max-w-[80%]`}
-      >
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={messageUser?.imageUrl || '/placeholder.svg'} />
-          <AvatarFallback>
-            {messageUser?.firstName?.[0] || messageUser?.username?.[0] || '?'}
-          </AvatarFallback>
+    <div className={`flex ${isMyMessage ? "justify-end" : "justify-start"} mb-4`}>
+      <div className={`flex ${isMyMessage ? "flex-row-reverse" : "flex-row"} items-start gap-2 max-w-[80%]`}>
+        <Avatar className="h-8 w-8 rounded-sm">
+          <AvatarImage src={typeof messageUser?.imageUrl === 'string' ? messageUser.imageUrl : "/placeholder.svg"} />
+          <AvatarFallback>{(messageUser?.firstName as string)?.[0] || (messageUser?.username as string)?.[0] || "?"}</AvatarFallback>
         </Avatar>
-        <div
-          className={`rounded-lg p-3 ${isMyMessage() ? 'bg-[#0F1531] text-white' : 'bg-gray-100'}`}
-        >
+        <div className={`rounded-lg p-3 ${isMyMessage ? "bg-[#0F1531] text-white" : "bg-gray-100"}`}>
+          {!isMyMessage && (
+            <p className="text-xs font-semibold mb-1">
+              {messageUser?.firstName as string} {messageUser?.lastName as string}
+            </p>
+          )}
           {hasAttachments && (
             <div className="mb-2 space-y-2">
               {message.attachments?.map((attachment: any, index: number) => {
-                if (attachment.type === 'image') {
+                if (attachment.type === "image") {
                   return (
                     <img
                       key={index}
-                      src={attachment.image_url || '/placeholder.svg'}
+                      src={attachment.image_url || "/placeholder.svg"}
                       alt={attachment.fallback}
                       className="max-w-full rounded-lg"
                     />
-                  );
+                  )
                 }
-                if (attachment.type === 'file') {
+                if (attachment.type === "file") {
                   return (
                     <a
                       key={index}
@@ -79,29 +91,26 @@ function CustomMessage({ userData }: { userData: any }) {
                       className="flex items-center gap-2 p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
                     >
                       <Paperclip className="h-4 w-4" />
-                      <span className="text-sm truncate">
-                        {attachment.title}
-                      </span>
+                      <span className="text-sm truncate">{attachment.title}</span>
                     </a>
-                  );
+                  )
                 }
-                return null;
+                return null
               })}
             </div>
           )}
           <p className="text-sm break-words">{message.text}</p>
           <span className="text-xs text-gray-400 mt-1 block">
             {new Date(message.created_at!).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
+              hour: "2-digit",
+              minute: "2-digit",
             })}
           </span>
         </div>
       </div>
     </div>
-  );
+  )
 }
-
 
 // Custom Input component
 function CustomInput() {
@@ -216,30 +225,101 @@ function CustomInput() {
 // Custom Channel Header component
 function CustomChannelHeader({ userData }: { userData: any }) {
   const { channel } = useChannelStateContext();
+  const { user } = useUser();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const toggleModal = () => setIsModalOpen((prev) => !prev);
+
+  const HeaderActions = () => (
+    <>
+      <BetterTooltip content="Messages">
+        <Button variant="ghost" size="icon" className="h-9 w-9 relative">
+          <MessageSquare className="h-5 w-5" />
+          {channel.state.messages.length > 0 && (
+            <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-purple-600" />
+          )}
+        </Button>
+      </BetterTooltip>
+      <BetterTooltip content="Notifications">
+        <Button variant="ghost" size="icon" className="h-9 w-9">
+          <Bell className="h-5 w-5 text-muted-foreground" />
+        </Button>
+      </BetterTooltip>
+    </>
+  );
 
   return (
-    <header className="border-b">
-      <div className="container mx-auto px-4 py-4">
+    <header className="bg-[#f7f7f7] px-4 border-full">
+      <div className="container mx-auto px-1 sm:px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={userData?.imageUrl || '/placeholder.svg'} />
-              <AvatarFallback>
-                {userData?.firstName?.[0] || userData?.username?.[0] || '?'}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h1 className="font-semibold">
-                {`${userData?.firstName} ${userData?.lastName}`}
-              </h1>
-              <div className="flex gap-2">
-                <Badge variant="secondary">Chat</Badge>
-              </div>
-            </div>
+          <div className="flex items-center bg-white rounded-full px-4 sm:px-4 py-2 sm:py-0 text-[#0F1531] justify-between gap-5">
+            <h1 className="font-semibold">{`${userData?.firstName} ${userData?.lastName}`}</h1>
+            <Button variant="ghost" size="icon" className="hidden sm:block">
+              <MoreVertical className="h-5 w-5" />
+            </Button>
           </div>
-          <Button variant="ghost" size="icon">
-            <MoreVertical className="h-5 w-5" />
-          </Button>
+          <div className="ml-auto rounded-full pl-2 p-1 bg-white flex items-center gap-4">
+            {/* Desktop view */}
+            <div className="hidden md:flex items-center gap-4">
+              <HeaderActions />
+            </div>
+            {/* Mobile view */}
+            <div className="sm:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    <span>Messages</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Bell className="mr-2 h-4 w-4" />
+                    <span>Notifications</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    {!user ? (
+                      <Image
+                        src={
+                          require('@/assets/enwonoAvatar.webp') ||
+                          '/placeholder.svg'
+                        }
+                        alt="User Avatar"
+                        className="cursor-pointer rounded-full mr-2"
+                        width={32}
+                        height={32}
+                        onClick={toggleModal}
+                      />
+                    ) : (
+                      <UserButton />
+                    )}
+                    <span>My Profile</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            {!user ? (
+              <Image
+                src={
+                  require('@/assets/enwonoAvatar.webp') || '/placeholder.svg'
+                }
+                alt="User Avatar"
+                className="cursor-pointer rounded-full mr-2"
+                width={32}
+                height={32}
+                onClick={toggleModal}
+              />
+            ) : (
+              <UserButton />
+            )}
+            <AccountSettingsModal
+              open={isModalOpen}
+              onOpenChange={setIsModalOpen}
+              user={user}
+            />
+          </div>
         </div>
       </div>
     </header>
