@@ -1,7 +1,7 @@
 "use client"
 
+import { StreamChatView } from "@/components/stream-chat"
 import { use, useEffect, useState } from "react"
-import { StreamChatView } from "@/components/custom/stream-chat"
 
 export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   // Properly unwrap params
