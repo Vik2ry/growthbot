@@ -27,12 +27,16 @@ import {
 import 'stream-chat-react/dist/css/v2/index.css';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
-// Custom Message component
+
 function CustomMessage({ userData }: { userData: any }) {
   const { message, isMyMessage } = useMessageContext();
+  const { user } = useUser(); // Get current Clerk user
 
+  // Use current Clerk user’s avatar for messages from others
   const messageUser =
-    message.user?.id === userData?.id ? userData : message.user;
+    message.user?.id === userData?.id
+      ? userData
+      : { ...message.user, imageUrl: message.user?.imageUrl || user?.imageUrl };
 
   const hasAttachments = message.attachments && message.attachments.length > 0;
 
@@ -97,6 +101,7 @@ function CustomMessage({ userData }: { userData: any }) {
     </div>
   );
 }
+
 
 // Custom Input component
 function CustomInput() {
@@ -225,7 +230,7 @@ function CustomChannelHeader({ userData }: { userData: any }) {
             </Avatar>
             <div>
               <h1 className="font-semibold">
-                {`Chat with ${userData?.firstName} ${userData?.lastName}`}
+                {`${userData?.firstName} ${userData?.lastName}`}
               </h1>
               <div className="flex gap-2">
                 <Badge variant="secondary">Chat</Badge>
