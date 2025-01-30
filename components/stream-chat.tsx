@@ -5,22 +5,27 @@ import {
   Channel,
   Chat,
   MessageInput,
-  VirtualizedMessageList,
+  MessageList,
   Window,
   useChannelStateContext,
   useMessageContext,
   useMessageInputContext,
 } from 'stream-chat-react';
-import type {
-  StreamChat as StreamChatType,
-  Channel as StreamChannelType,
-} from 'stream-chat';
-import { useUser } from '@clerk/nextjs';
+import type { StreamChat as StreamChatType } from 'stream-chat';
+import { UserButton, useUser } from '@clerk/nextjs';
 import { connectToStream } from '@/lib/stream';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Send, MoreVertical, Smile, Paperclip, X } from 'lucide-react';
+import {
+  Send,
+  MoreVertical,
+  Smile,
+  Paperclip,
+  X,
+  Bell,
+  MessageSquare,
+} from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -29,52 +34,40 @@ import {
 import 'stream-chat-react/dist/css/v2/index.css';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
-import Image from 'next/image';
-import { Bell, MessageSquare } from 'lucide-react';
-import { UserButton } from '@clerk/nextjs';
 import { BetterTooltip } from './ui/tooltip';
-import { AccountSettingsModal } from '@/components/account-settings-modal';
+import { AccountSettingsModal } from './account-settings-modal';
+import Image from 'next/image';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { UserData } from '@/app/(chat)/find-discipler/[id]/page';
 
-function CustomMessage({ userData }: { userData: UserData }) {
+function CustomMessage({ userData }: { userData: any }) {
   const { message } = useMessageContext()
-  const { user } = useUser()
+  const { user } = useUser() // Get current Clerk user
 
-  const isMyMessage = message.user?.id === userData?.id
-  const messageUserImage = isMyMessage
-    ? user?.imageUrl
-    : message.user?.image || userData?.imageUrl || "/placeholder.svg"
+  const isMyMessage = message.user?.id === user?.id
+
+  // Determine the message user
+  const messageUser = isMyMessage ? user : message.user
 
   const hasAttachments = message.attachments && message.attachments.length > 0
-
-  const handleAttachmentClick = (attachment: any) => {
-    if (attachment.type === "file") {
-      window.open(attachment.asset_url, "_blank")
-    }
-  }
 
   return (
     <div className={`flex ${isMyMessage ? "justify-end" : "justify-start"} mb-4`}>
       <div className={`flex ${isMyMessage ? "flex-row-reverse" : "flex-row"} items-start gap-2 max-w-[80%]`}>
         <Avatar className="h-8 w-8 rounded-sm">
-          <AvatarImage
-            src={messageUserImage}
-            alt={`${message.user?.name || "User"}'s avatar`}
-            onError={(e) => {
-              const img = e.target as HTMLImageElement
-              img.src = "/placeholder.svg"
-            }}
-          />
-          <AvatarFallback>{message.user?.name?.[0] || "?"}</AvatarFallback>
+          <AvatarImage src={typeof messageUser?.imageUrl === 'string' ? messageUser.imageUrl : "/placeholder.svg"} />
+          <AvatarFallback>{(messageUser?.firstName as string)?.[0] || (messageUser?.username as string)?.[0] || "?"}</AvatarFallback>
         </Avatar>
         <div className={`rounded-lg p-3 ${isMyMessage ? "bg-[#0F1531] text-white" : "bg-gray-100"}`}>
-          {!isMyMessage && <p className="text-xs font-semibold mb-1">{message.user?.name}</p>}
+          {!isMyMessage && (
+            <p className="text-xs font-semibold mb-1">
+              {messageUser?.firstName as string} {messageUser?.lastName as string}
+            </p>
+          )}
           {hasAttachments && (
             <div className="mb-2 space-y-2">
               {message.attachments?.map((attachment: any, index: number) => {
@@ -82,23 +75,24 @@ function CustomMessage({ userData }: { userData: UserData }) {
                   return (
                     <img
                       key={index}
-                      src={attachment.image_url || attachment.thumb_url || "/placeholder.svg"}
+                      src={attachment.image_url || "/placeholder.svg"}
                       alt={attachment.fallback}
-                      className="max-w-full rounded-lg cursor-pointer"
-                      onClick={() => window.open(attachment.image_url, "_blank")}
+                      className="max-w-full rounded-lg"
                     />
                   )
                 }
                 if (attachment.type === "file") {
                   return (
-                    <div
+                    <a
                       key={index}
-                      className="flex items-center gap-2 p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
-                      onClick={() => handleAttachmentClick(attachment)}
+                      href={attachment.asset_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
                     >
                       <Paperclip className="h-4 w-4" />
                       <span className="text-sm truncate">{attachment.title}</span>
-                    </div>
+                    </a>
                   )
                 }
                 return null
@@ -229,7 +223,7 @@ function CustomInput() {
 }
 
 // Custom Channel Header component
-function CustomChannelHeader({ userData }: { userData: UserData }) {
+function CustomChannelHeader({ userData }: { userData: any }) {
   const { channel } = useChannelStateContext();
   const { user } = useUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -257,9 +251,9 @@ function CustomChannelHeader({ userData }: { userData: UserData }) {
     <header className="bg-[#f7f7f7] px-4 border-full">
       <div className="container mx-auto px-1 sm:px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center bg-white rounded-full py-3 md:py-0 px-4 text-[#0F1531] justify-between gap-5">
+          <div className="flex items-center bg-white rounded-full px-4 sm:px-4 py-2 sm:py-0 text-[#0F1531] justify-between gap-5">
             <h1 className="font-semibold">{`${userData?.firstName} ${userData?.lastName}`}</h1>
-            <Button variant="ghost" size="icon" className="hidden md:block">
+            <Button variant="ghost" size="icon" className="hidden sm:block">
               <MoreVertical className="h-5 w-5" />
             </Button>
           </div>
@@ -333,110 +327,130 @@ function CustomChannelHeader({ userData }: { userData: UserData }) {
 }
 
 interface StreamChatProps {
-  id: string
-  userData: UserData
+  id: string;
 }
 
-export function StreamChatView({ id, userData }: StreamChatProps) {
-  const { user, isLoaded } = useUser()
-  const [client, setClient] = useState<StreamChatType | null>(null)
-  const [channel, setChannel] = useState<StreamChannelType | null>(null)
-  const [error, setError] = useState<string | null>(null)
+export function StreamChatView({ id }: StreamChatProps) {
+  const { user, isLoaded } = useUser();
+  const [client, setClient] = useState<StreamChatType | null>(null);
+  const [channel, setChannel] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
-    let mounted = true
-    let currentClient: StreamChatType | null = null
+    async function fetchUserData() {
+      if (!id) return;
+      try {
+        const response = await fetch(`/api/users/${id}`);
+        const data = await response.json();
+        setUserData(data);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    }
+    fetchUserData();
+  }, [id]);
+
+  useEffect(() => {
+    let mounted = true;
+    let currentClient: StreamChatType | null = null;
 
     async function initChat() {
-      if (!user?.id || !isLoaded || !id) return
+      if (!user?.id || !isLoaded) return;
 
       try {
-        console.log("Initializing chat...")
-        const streamClient = await connectToStream(user.id, user.username || "Anonymous")
-        currentClient = streamClient
+        console.log('Initializing chat...');
+        const streamClient = await connectToStream(
+          user.id,
+          user.username || 'Anonymous'
+        );
+
+        currentClient = streamClient;
 
         if (!mounted) {
-          await streamClient.disconnectUser()
-          return
+          await streamClient.disconnectUser();
+          return;
         }
 
-        setClient(streamClient)
-
-        const channel = streamClient.channel("messaging", id, {
-          name: `Chat with ${userData?.username || "Anonymous"}`,
-          members: [user.id, id],
+        console.log('Creating/getting channel...');
+        const channel = streamClient.channel('messaging', id, {
+          name: `Chat ${userData?.username || 'Anonymous'}`,
+          members: [user.id],
           created_by_id: user.id,
-          image: userData?.imageUrl || "/placeholder.svg",
-        })
+        });
 
         try {
-          await channel.watch()
+          console.log('Watching channel...');
+          await channel.watch();
+          console.log('Channel watched successfully');
         } catch (error: any) {
-          console.log("Channel watch error:", error.message)
-          if (error.message.includes("channel not found")) {
-            console.log("Creating new channel...")
-            await channel.create()
-            await channel.watch()
-            console.log("New channel created and watched")
+          console.log('Channel watch error:', error.message);
+          if (error.message.includes('channel not found')) {
+            console.log('Creating new channel...');
+            await channel.create();
+            await channel.watch();
+            console.log('New channel created and watched');
           } else {
-            throw error
+            throw error;
           }
         }
 
         if (!mounted) {
-          await streamClient.disconnectUser()
-          return
+          await streamClient.disconnectUser();
+          return;
         }
 
-        setChannel(channel)
+        setClient(streamClient);
+        setChannel(channel);
+        console.log('Chat initialized successfully');
       } catch (error) {
-        console.error("Error in initChat:", error)
-        const errorMessage = error instanceof Error ? error.message : "Failed to initialize chat"
-        setError(errorMessage)
+        console.error('Error in initChat:', error);
+        setError(
+          error instanceof Error ? error.message : 'Failed to initialize chat'
+        );
       }
     }
 
-    initChat()
+    initChat();
 
     return () => {
-      mounted = false
-      // Use an IIFE for cleanup to handle the async disconnection
-      ;(async () => {
-        try {
-          if (currentClient) {
-            // First set states to null to prevent any component updates
-            setChannel(null)
-            setClient(null)
-            // Then disconnect the client
-            await currentClient.disconnectUser()
-          }
-        } catch (error) {
-          console.error("Error in cleanup:", error)
+      mounted = false;
+      const cleanup = async () => {
+        if (currentClient) {
+          console.log('Cleaning up...');
+          await currentClient.disconnectUser();
+          setClient(null);
+          setChannel(null);
         }
-      })()
-    }
-  }, [user?.id, user?.username, isLoaded, id, userData])
+      };
+      cleanup();
+    };
+  }, [user?.id, user?.username, userData, isLoaded, id]);
 
   if (error) {
-    return <div className="flex items-center justify-center h-screen text-red-500">Error: {error}</div>
+    return (
+      <div className="flex items-center justify-center h-screen text-red-500">
+        Error: {error}
+      </div>
+    );
   }
 
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]"></div>
         <p className="ml-2">Loading user...</p>
       </div>
-    )
+    );
   }
 
   if (!client || !channel) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]"></div>
         <p className="ml-2">Connecting to chat...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -449,34 +463,13 @@ export function StreamChatView({ id, userData }: StreamChatProps) {
         >
           <Window>
             <CustomChannelHeader userData={userData} />
-            <VirtualizedMessageList
-              // additionalVirtuosoProps={{className: "custom-virtualized-list"}}
-              loadingMore={false}
-              hasMore={false}
-              defaultItemHeight={76}
-            />
-            <MessageInput Input={CustomInput} />
+            <div className="flex-1 overflow-y-auto p-4">
+              <MessageList />
+            </div>
+            <MessageInput />
           </Window>
         </Channel>
       </Chat>
-      <style jsx global>{`
-        .str-chat {
-          --str-chat__primary-color: #0F1531;
-          --str-chat__active-primary-color: #0F1531;
-          height: 100vh;
-        }
-        .str-chat__virtual-list {
-          padding: 16px;
-          background: white;
-        }
-        .str-chat__virtual-list .str-chat__li {
-          margin-bottom: 16px;
-        }
-        .str-chat__input-flat {
-          border-top: 1px solid #e5e7eb;
-        }
-      `}</style>
     </div>
-  )
+  );
 }
-
