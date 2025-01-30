@@ -5,7 +5,7 @@ import {
   Channel,
   Chat,
   MessageInput,
-  MessageList,
+  VirtualizedMessageList,
   Window,
   useChannelStateContext,
   useMessageContext,
@@ -17,15 +17,7 @@ import { connectToStream } from '@/lib/stream';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Send,
-  MoreVertical,
-  Smile,
-  Paperclip,
-  X,
-  Bell,
-  MessageSquare,
-} from 'lucide-react';
+import { Send, MoreVertical, Smile, Paperclip, X, MessageSquare, Bell } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -34,9 +26,9 @@ import {
 import 'stream-chat-react/dist/css/v2/index.css';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
-import { BetterTooltip } from './ui/tooltip';
-import { AccountSettingsModal } from './account-settings-modal';
 import Image from 'next/image';
+import { BetterTooltip } from './ui/tooltip';
+import { AccountSettingsModal } from '@/components/account-settings-modal';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,71 +37,110 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 function CustomMessage({ userData }: { userData: any }) {
-  const { message } = useMessageContext()
-  const { user } = useUser() // Get current Clerk user
+  const { message } = useMessageContext();
+  const { user } = useUser();
 
   const isMyMessage = message.user?.id === user?.id
 
   // Determine the message user
-  const messageUser = isMyMessage ? user : message.user
+  const messageUser = isMyMessage ? user : message.user;
 
-  const hasAttachments = message.attachments && message.attachments.length > 0
+  const hasAttachments = message.attachments && message.attachments.length > 0;
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (
+      hasAttachments &&
+      message.attachments &&
+      message.attachments[0].type === 'image'
+    ) {
+      setPreviewUrl(
+        message.attachments[0].image_url ||
+          message.attachments[0].thumb_url ||
+          null
+      );
+    }
+  }, [hasAttachments, message.attachments]);
+
+  const handleAttachmentClick = (attachment: any) => {
+    if (attachment.type === 'file') {
+      window.open(attachment.asset_url, '_blank');
+    }
+  };
 
   return (
-    <div className={`flex ${isMyMessage ? "justify-end" : "justify-start"} mb-4`}>
-      <div className={`flex ${isMyMessage ? "flex-row-reverse" : "flex-row"} items-start gap-2 max-w-[80%]`}>
+    <div
+      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-4`}
+    >
+      <div
+        className={`flex ${isMyMessage ? 'flex-row-reverse' : 'flex-row'} items-start gap-2 max-w-[80%]`}
+      >
         <Avatar className="h-8 w-8 rounded-sm">
-          <AvatarImage src={typeof messageUser?.imageUrl === 'string' ? messageUser.imageUrl : "/placeholder.svg"} />
-          <AvatarFallback>{(messageUser?.firstName as string)?.[0] || (messageUser?.username as string)?.[0] || "?"}</AvatarFallback>
+          <AvatarImage
+            src={
+              typeof messageUser?.imageUrl === 'string'
+                ? messageUser.imageUrl
+                : '/placeholder.svg'
+            }
+          />
+          <AvatarFallback>{messageUser?.id?.[0] || '?'}</AvatarFallback>
         </Avatar>
-        <div className={`rounded-lg p-3 ${isMyMessage ? "bg-[#0F1531] text-white" : "bg-gray-100"}`}>
+        <div
+          className={`rounded-lg p-3 ${isMyMessage ? 'bg-[#0F1531] text-white' : 'bg-gray-100'}`}
+        >
           {!isMyMessage && (
-            <p className="text-xs font-semibold mb-1">
-              {messageUser?.firstName as string} {messageUser?.lastName as string}
-            </p>
+            <p className="text-xs font-semibold mb-1">{messageUser?.id}</p>
           )}
           {hasAttachments && (
             <div className="mb-2 space-y-2">
               {message.attachments?.map((attachment: any, index: number) => {
-                if (attachment.type === "image") {
+                if (attachment.type === 'image') {
                   return (
                     <img
                       key={index}
-                      src={attachment.image_url || "/placeholder.svg"}
+                      src={
+                        attachment.image_url ||
+                        attachment.thumb_url ||
+                        '/placeholder.svg'
+                      }
                       alt={attachment.fallback}
-                      className="max-w-full rounded-lg"
+                      className="max-w-full rounded-lg cursor-pointer"
+                      onClick={() =>
+                        window.open(attachment.image_url, '_blank')
+                      }
                     />
-                  )
+                  );
                 }
-                if (attachment.type === "file") {
+                if (attachment.type === 'file') {
                   return (
-                    <a
+                    <div
                       key={index}
-                      href={attachment.asset_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+                      className="flex items-center gap-2 p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
+                      onClick={() => handleAttachmentClick(attachment)}
                     >
                       <Paperclip className="h-4 w-4" />
-                      <span className="text-sm truncate">{attachment.title}</span>
-                    </a>
-                  )
+                      <span className="text-sm truncate">
+                        {attachment.title}
+                      </span>
+                    </div>
+                  );
                 }
-                return null
+                return null;
               })}
             </div>
           )}
           <p className="text-sm break-words">{message.text}</p>
           <span className="text-xs text-gray-400 mt-1 block">
             {new Date(message.created_at!).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </span>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Custom Input component
@@ -336,6 +367,9 @@ export function StreamChatView({ id }: StreamChatProps) {
   const [channel, setChannel] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState<any>(null);
+  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     async function fetchUserData() {
@@ -427,6 +461,36 @@ export function StreamChatView({ id }: StreamChatProps) {
     };
   }, [user?.id, user?.username, userData, isLoaded, id]);
 
+  useEffect(() => {
+    if (channel) {
+      const preloadImages = () => {
+        channel.state.messages.forEach((message: any) => {
+          message.attachments?.forEach((attachment: any) => {
+            if (
+              attachment.type === 'image' &&
+              !preloadedImages.has(attachment.image_url)
+            ) {
+              fetch(attachment.image_url, { mode: 'no-cors' }) // Preloads the image
+                .then(() => {
+                  setPreloadedImages((prev) =>
+                    new Set(prev).add(attachment.image_url)
+                  );
+                })
+                .catch(console.error);
+            }
+          });
+        });
+      };
+
+      preloadImages();
+      channel.on('message.new', preloadImages);
+
+      return () => {
+        channel.off('message.new', preloadImages);
+      };
+    }
+  }, [channel, preloadedImages]);
+
   if (error) {
     return (
       <div className="flex items-center justify-center h-screen text-red-500">
@@ -463,13 +527,22 @@ export function StreamChatView({ id }: StreamChatProps) {
         >
           <Window>
             <CustomChannelHeader userData={userData} />
-            <div className="flex-1 overflow-y-auto p-4">
-              <MessageList />
+            <div className="flex-1 overflow-hidden">
+              <VirtualizedMessageList />
             </div>
             <MessageInput />
           </Window>
         </Channel>
       </Chat>
+      <style jsx global>{`
+        .custom-virtualized-list {
+          padding: 16px;
+          height: 100%;
+        }
+        .custom-virtualized-list > div {
+          height: 100% !important;
+        }
+      `}</style>
     </div>
   );
 }
