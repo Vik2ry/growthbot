@@ -1,6 +1,6 @@
-'use client';
+"use client"
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from "react"
 import {
   Channel,
   Chat,
@@ -10,45 +10,31 @@ import {
   useChannelStateContext,
   useMessageContext,
   useMessageInputContext,
-} from 'stream-chat-react';
-import type { StreamChat as StreamChatType } from 'stream-chat';
-import { UserButton, useUser } from '@clerk/nextjs';
-import { connectToStream } from '@/lib/stream';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Send,
-  MoreVertical,
-  Smile,
-  Paperclip,
-  X,
-  Bell,
-  MessageSquare,
-} from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import 'stream-chat-react/dist/css/v2/index.css';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
+} from "stream-chat-react"
+import type { StreamChat as StreamChatType } from "stream-chat"
+import { useUser } from "@clerk/nextjs"
+import { connectToStream } from "@/lib/stream"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Send, MoreVertical, Smile, Paperclip, X } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import "stream-chat-react/dist/css/v2/index.css"
+import data from "@emoji-mart/data"
+import Picker from "@emoji-mart/react"
+import Image from "next/image"
+import { Bell, MessageSquare } from "lucide-react"
+import { UserButton } from "@clerk/nextjs"
 import { BetterTooltip } from './ui/tooltip';
-import { AccountSettingsModal } from './account-settings-modal';
-import Image from 'next/image';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { AccountSettingsModal } from "@/components/account-settings-modal"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 function CustomMessage({ userData }: { userData: any }) {
   const { message } = useMessageContext()
-  const { user } = useUser() // Get current Clerk user
+  const { user } = useUser()
 
-  const isMyMessage = message.user?.id === user?.id
+  const isMyMessage = message.user?.id === user?.id;
 
   // Determine the message user
   const messageUser = isMyMessage ? user : message.user
@@ -60,14 +46,10 @@ function CustomMessage({ userData }: { userData: any }) {
       <div className={`flex ${isMyMessage ? "flex-row-reverse" : "flex-row"} items-start gap-2 max-w-[80%]`}>
         <Avatar className="h-8 w-8 rounded-sm">
           <AvatarImage src={typeof messageUser?.imageUrl === 'string' ? messageUser.imageUrl : "/placeholder.svg"} />
-          <AvatarFallback>{(messageUser?.firstName as string)?.[0] || (messageUser?.username as string)?.[0] || "?"}</AvatarFallback>
+          <AvatarFallback>{messageUser?.id?.[0] || "?"}</AvatarFallback>
         </Avatar>
         <div className={`rounded-lg p-3 ${isMyMessage ? "bg-[#0F1531] text-white" : "bg-gray-100"}`}>
-          {!isMyMessage && (
-            <p className="text-xs font-semibold mb-1">
-              {messageUser?.firstName as string} {messageUser?.lastName as string}
-            </p>
-          )}
+          {!isMyMessage && <p className="text-xs font-semibold mb-1">{messageUser?.id}</p>}
           {hasAttachments && (
             <div className="mb-2 space-y-2">
               {message.attachments?.map((attachment: any, index: number) => {
@@ -114,46 +96,40 @@ function CustomMessage({ userData }: { userData: any }) {
 
 // Custom Input component
 function CustomInput() {
-  const { setText, text, handleSubmit, uploadNewFiles } =
-    useMessageInputContext();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [attachments, setAttachments] = useState<File[]>([]);
+  const { setText, text, handleSubmit, uploadNewFiles } = useMessageInputContext()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [attachments, setAttachments] = useState<File[]>([])
 
   const handleEmojiSelect = (emoji: any) => {
-    setText(text + emoji.native);
-  };
+    setText(text + emoji.native)
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setAttachments((prev) => [...prev, ...files]);
+    const files = Array.from(e.target.files || [])
+    setAttachments((prev) => [...prev, ...files])
     if (uploadNewFiles) {
-      uploadNewFiles(files);
+      uploadNewFiles(files)
     }
-  };
+  }
 
   const removeAttachment = (index: number) => {
-    setAttachments((prev) => prev.filter((_, i) => i !== index));
-  };
+    setAttachments((prev) => prev.filter((_, i) => i !== index))
+  }
 
   const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSubmit(e);
-    setAttachments([]);
-  };
+    e.preventDefault()
+    handleSubmit(e)
+    setAttachments([])
+  }
 
   return (
     <form onSubmit={handleFormSubmit} className="border-t p-4">
       {attachments.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-2">
           {attachments.map((file, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1"
-            >
+            <div key={index} className="flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1">
               <Paperclip className="h-4 w-4" />
-              <span className="text-sm truncate max-w-[150px]">
-                {file.name}
-              </span>
+              <span className="text-sm truncate max-w-[150px]">{file.name}</span>
               <Button
                 type="button"
                 variant="ghost"
@@ -168,31 +144,15 @@ function CustomInput() {
         </div>
       )}
       <div className="flex gap-2">
-        <Input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-          multiple
-        />
+        <Input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
         <Popover>
           <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="text-gray-500 hover:text-gray-600"
-            >
+            <Button type="button" variant="ghost" size="icon" className="text-gray-500 hover:text-gray-600">
               <Smile className="h-5 w-5" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-full p-0 border-none">
-            <Picker
-              data={data}
-              onEmojiSelect={handleEmojiSelect}
-              theme="light"
-              previewPosition="none"
-            />
+            <Picker data={data} onEmojiSelect={handleEmojiSelect} theme="light" previewPosition="none" />
           </PopoverContent>
         </Popover>
         <Button
@@ -204,30 +164,21 @@ function CustomInput() {
         >
           <Paperclip className="h-5 w-5" />
         </Button>
-        <Input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Type message"
-          className="flex-1"
-        />
-        <Button
-          type="submit"
-          size="icon"
-          className="bg-[#0F1531] hover:bg-[#0F1531]/90"
-        >
+        <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type message" className="flex-1" />
+        <Button type="submit" size="icon" className="bg-[#0F1531] hover:bg-[#0F1531]/90">
           <Send className="h-4 w-4" />
         </Button>
       </div>
     </form>
-  );
+  )
 }
 
 // Custom Channel Header component
 function CustomChannelHeader({ userData }: { userData: any }) {
-  const { channel } = useChannelStateContext();
-  const { user } = useUser();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const toggleModal = () => setIsModalOpen((prev) => !prev);
+  const { channel } = useChannelStateContext()
+  const { user } = useUser()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const toggleModal = () => setIsModalOpen((prev) => !prev)
 
   const HeaderActions = () => (
     <>
@@ -245,15 +196,15 @@ function CustomChannelHeader({ userData }: { userData: any }) {
         </Button>
       </BetterTooltip>
     </>
-  );
+  )
 
   return (
     <header className="bg-[#f7f7f7] px-4 border-full">
-      <div className="container mx-auto px-1 sm:px-4 py-4">
+      <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center bg-white rounded-full px-4 sm:px-4 py-2 sm:py-0 text-[#0F1531] justify-between gap-5">
+          <div className="flex items-center bg-white rounded-full px-4 text-[#0F1531] justify-between gap-5">
             <h1 className="font-semibold">{`${userData?.firstName} ${userData?.lastName}`}</h1>
-            <Button variant="ghost" size="icon" className="hidden sm:block">
+            <Button variant="ghost" size="icon">
               <MoreVertical className="h-5 w-5" />
             </Button>
           </div>
@@ -263,7 +214,7 @@ function CustomChannelHeader({ userData }: { userData: any }) {
               <HeaderActions />
             </div>
             {/* Mobile view */}
-            <div className="sm:hidden">
+            <div className="md:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
@@ -279,34 +230,14 @@ function CustomChannelHeader({ userData }: { userData: any }) {
                     <Bell className="mr-2 h-4 w-4" />
                     <span>Notifications</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    {!user ? (
-                      <Image
-                        src={
-                          require('@/assets/enwonoAvatar.webp') ||
-                          '/placeholder.svg'
-                        }
-                        alt="User Avatar"
-                        className="cursor-pointer rounded-full mr-2"
-                        width={32}
-                        height={32}
-                        onClick={toggleModal}
-                      />
-                    ) : (
-                      <UserButton />
-                    )}
-                    <span>My Profile</span>
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
             {!user ? (
               <Image
-                src={
-                  require('@/assets/enwonoAvatar.webp') || '/placeholder.svg'
-                }
+                src={require("@/assets/enwonoAvatar.webp") || "/placeholder.svg"}
                 alt="User Avatar"
-                className="cursor-pointer rounded-full mr-2"
+                className="cursor-pointer rounded-full mr-3"
                 width={32}
                 height={32}
                 onClick={toggleModal}
@@ -314,125 +245,112 @@ function CustomChannelHeader({ userData }: { userData: any }) {
             ) : (
               <UserButton />
             )}
-            <AccountSettingsModal
-              open={isModalOpen}
-              onOpenChange={setIsModalOpen}
-              user={user}
-            />
+            <AccountSettingsModal open={isModalOpen} onOpenChange={setIsModalOpen} user={user} />
           </div>
         </div>
       </div>
     </header>
-  );
+  )
 }
 
 interface StreamChatProps {
-  id: string;
+  id: string
 }
 
 export function StreamChatView({ id }: StreamChatProps) {
-  const { user, isLoaded } = useUser();
-  const [client, setClient] = useState<StreamChatType | null>(null);
-  const [channel, setChannel] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [userData, setUserData] = useState<any>(null);
+  const { user, isLoaded } = useUser()
+  const [client, setClient] = useState<StreamChatType | null>(null)
+  const [channel, setChannel] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [userData, setUserData] = useState<any>(null)
 
   useEffect(() => {
     async function fetchUserData() {
-      if (!id) return;
+      if (!id) return
       try {
-        const response = await fetch(`/api/users/${id}`);
-        const data = await response.json();
-        setUserData(data);
+        const response = await fetch(`/api/users/${id}`)
+        const data = await response.json()
+        setUserData(data)
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error)
       }
     }
-    fetchUserData();
-  }, [id]);
+    fetchUserData()
+  }, [id])
 
   useEffect(() => {
-    let mounted = true;
-    let currentClient: StreamChatType | null = null;
+    let mounted = true
+    let currentClient: StreamChatType | null = null
 
     async function initChat() {
-      if (!user?.id || !isLoaded) return;
+      if (!user?.id || !isLoaded) return
 
       try {
-        console.log('Initializing chat...');
-        const streamClient = await connectToStream(
-          user.id,
-          user.username || 'Anonymous'
-        );
+        console.log("Initializing chat...")
+        const streamClient = await connectToStream(user.id, user.username || "Anonymous")
 
-        currentClient = streamClient;
+        currentClient = streamClient
 
         if (!mounted) {
-          await streamClient.disconnectUser();
-          return;
+          await streamClient.disconnectUser()
+          return
         }
 
-        console.log('Creating/getting channel...');
-        const channel = streamClient.channel('messaging', id, {
-          name: `Chat ${userData?.username || 'Anonymous'}`,
+        console.log("Creating/getting channel...")
+        const channel = streamClient.channel("messaging", id, {
+          name: `Chat ${userData?.username || "Anonymous"}`,
           members: [user.id],
           created_by_id: user.id,
-        });
+        })
 
         try {
-          console.log('Watching channel...');
-          await channel.watch();
-          console.log('Channel watched successfully');
+          console.log("Watching channel...")
+          await channel.watch()
+          console.log("Channel watched successfully")
         } catch (error: any) {
-          console.log('Channel watch error:', error.message);
-          if (error.message.includes('channel not found')) {
-            console.log('Creating new channel...');
-            await channel.create();
-            await channel.watch();
-            console.log('New channel created and watched');
+          console.log("Channel watch error:", error.message)
+          if (error.message.includes("channel not found")) {
+            console.log("Creating new channel...")
+            await channel.create()
+            await channel.watch()
+            console.log("New channel created and watched")
           } else {
-            throw error;
+            throw error
           }
         }
 
         if (!mounted) {
-          await streamClient.disconnectUser();
-          return;
+          await streamClient.disconnectUser()
+          return
         }
 
-        setClient(streamClient);
-        setChannel(channel);
-        console.log('Chat initialized successfully');
+        setClient(streamClient)
+        setChannel(channel)
+        console.log("Chat initialized successfully")
       } catch (error) {
-        console.error('Error in initChat:', error);
-        setError(
-          error instanceof Error ? error.message : 'Failed to initialize chat'
-        );
+        console.error("Error in initChat:", error)
+        setError(error instanceof Error ? error.message : "Failed to initialize chat")
       }
     }
 
-    initChat();
+    initChat()
 
     return () => {
-      mounted = false;
+      mounted = false
       const cleanup = async () => {
         if (currentClient) {
-          console.log('Cleaning up...');
-          await currentClient.disconnectUser();
-          setClient(null);
-          setChannel(null);
+          console.log("Cleaning up...")
+          await currentClient.disconnectUser()
+          setClient(null)
+          setChannel(null)
         }
-      };
-      cleanup();
-    };
-  }, [user?.id, user?.username, userData, isLoaded, id]);
+      }
+      cleanup()
+    }
+  }, [user?.id, user?.username, userData, isLoaded, id])
 
   if (error) {
-    return (
-      <div className="flex items-center justify-center h-screen text-red-500">
-        Error: {error}
-      </div>
-    );
+    return <div className="flex items-center justify-center h-screen text-red-500">Error: {error}</div>
   }
 
   if (!isLoaded) {
@@ -441,7 +359,7 @@ export function StreamChatView({ id }: StreamChatProps) {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]"></div>
         <p className="ml-2">Loading user...</p>
       </div>
-    );
+    )
   }
 
   if (!client || !channel) {
@@ -450,7 +368,7 @@ export function StreamChatView({ id }: StreamChatProps) {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]"></div>
         <p className="ml-2">Connecting to chat...</p>
       </div>
-    );
+    )
   }
 
   return (
@@ -471,5 +389,6 @@ export function StreamChatView({ id }: StreamChatProps) {
         </Channel>
       </Chat>
     </div>
-  );
+  )
 }
+
