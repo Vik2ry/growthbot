@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { EmailAddress, PhoneNumber, User } from '@clerk/nextjs/server';
 
-interface UserData extends User {
+export interface UserData extends User {
   primaryEmailAddress: EmailAddress | null;
   primaryPhoneNumber: PhoneNumber | null;
   primaryWeb3Wallet: null;
