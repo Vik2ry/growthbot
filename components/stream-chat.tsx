@@ -1,17 +1,27 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   Channel,
+  ChannelList,
   Chat,
+  DefaultStreamChatGenerics,
   MessageInput,
   MessageList,
   Window,
   useChannelStateContext,
+  useCreateChatClient,
   useMessageContext,
   useMessageInputContext,
 } from 'stream-chat-react';
-import type { StreamChat as StreamChatType } from 'stream-chat';
+import type {
+  ChannelFilters,
+  ChannelOptions,
+  ChannelSort,
+  OwnUserResponse,
+  StreamChat as StreamChatType,
+  UserResponse,
+} from 'stream-chat';
 import { UserButton, useUser } from '@clerk/nextjs';
 import { connectToStream } from '@/lib/stream';
 import { Input } from '@/components/ui/input';
@@ -43,45 +53,66 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { UserResource } from '@clerk/types';
+import { UserData } from './find-mentor-page';
+import { createNewConversationAction, createToken } from '@/lib/actions';
+import { useChatClient } from '@/hooks/use-chat-client';
 
 function CustomMessage({ userData }: { userData: any }) {
-  const { message } = useMessageContext()
-  const { user } = useUser() // Get current Clerk user
+  const { message } = useMessageContext();
+  const { user } = useUser(); // Get current Clerk user
 
-  const isMyMessage = message.user?.id === user?.id
+  const isMyMessage = message.user?.id === user?.id;
 
   // Determine the message user
-  const messageUser = isMyMessage ? user : message.user
+  const messageUser = isMyMessage ? user : message.user;
 
-  const hasAttachments = message.attachments && message.attachments.length > 0
+  const hasAttachments = message.attachments && message.attachments.length > 0;
 
   return (
-    <div className={`flex ${isMyMessage ? "justify-end" : "justify-start"} mb-4`}>
-      <div className={`flex ${isMyMessage ? "flex-row-reverse" : "flex-row"} items-start gap-2 max-w-[80%]`}>
+    <div
+      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-4`}
+    >
+      <div
+        className={`flex ${isMyMessage ? 'flex-row-reverse' : 'flex-row'} items-start gap-2 max-w-[80%]`}
+      >
         <Avatar className="h-8 w-8 rounded-sm">
-          <AvatarImage src={typeof messageUser?.imageUrl === 'string' ? messageUser.imageUrl : "/placeholder.svg"} />
-          <AvatarFallback>{(messageUser?.firstName as string)?.[0] || (messageUser?.username as string)?.[0] || "?"}</AvatarFallback>
+          <AvatarImage
+            src={
+              typeof messageUser?.imageUrl === 'string'
+                ? messageUser.imageUrl
+                : '/placeholder.svg'
+            }
+          />
+          <AvatarFallback>
+            {(messageUser?.firstName as string)?.[0] ||
+              (messageUser?.username as string)?.[0] ||
+              '?'}
+          </AvatarFallback>
         </Avatar>
-        <div className={`rounded-lg p-3 ${isMyMessage ? "bg-[#0F1531] text-white" : "bg-gray-100"}`}>
+        <div
+          className={`rounded-lg p-3 ${isMyMessage ? 'bg-[#0F1531] text-white' : 'bg-gray-100'}`}
+        >
           {!isMyMessage && (
             <p className="text-xs font-semibold mb-1">
-              {messageUser?.firstName as string} {messageUser?.lastName as string}
+              {messageUser?.firstName as string}{' '}
+              {messageUser?.lastName as string}
             </p>
           )}
           {hasAttachments && (
             <div className="mb-2 space-y-2">
               {message.attachments?.map((attachment: any, index: number) => {
-                if (attachment.type === "image") {
+                if (attachment.type === 'image') {
                   return (
                     <img
                       key={index}
-                      src={attachment.image_url || "/placeholder.svg"}
+                      src={attachment.image_url || '/placeholder.svg'}
                       alt={attachment.fallback}
-                      className="max-w-full rounded-lg"
+                      className="max-w-xs rounded-lg"
                     />
-                  )
+                  );
                 }
-                if (attachment.type === "file") {
+                if (attachment.type === 'file') {
                   return (
                     <a
                       key={index}
@@ -91,25 +122,27 @@ function CustomMessage({ userData }: { userData: any }) {
                       className="flex items-center gap-2 p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
                     >
                       <Paperclip className="h-4 w-4" />
-                      <span className="text-sm truncate">{attachment.title}</span>
+                      <span className="text-sm truncate">
+                        {attachment.title}
+                      </span>
                     </a>
-                  )
+                  );
                 }
-                return null
+                return null;
               })}
             </div>
           )}
           <p className="text-sm break-words">{message.text}</p>
           <span className="text-xs text-gray-400 mt-1 block">
             {new Date(message.created_at!).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </span>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Custom Input component
@@ -300,24 +333,13 @@ function CustomChannelHeader({ userData }: { userData: any }) {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            {!user ? (
-              <Image
-                src={
-                  require('@/assets/enwonoAvatar.webp') || '/placeholder.svg'
-                }
-                alt="User Avatar"
-                className="cursor-pointer rounded-full mr-2"
-                width={32}
-                height={32}
-                onClick={toggleModal}
-              />
-            ) : (
-              <UserButton />
-            )}
-            <AccountSettingsModal
-              open={isModalOpen}
-              onOpenChange={setIsModalOpen}
-              user={user}
+            <Image
+              src={userData.imageUrl}
+              alt="User Avatar"
+              className="cursor-pointer rounded-full mr-2"
+              width={32}
+              height={32}
+              onClick={toggleModal}
             />
           </div>
         </div>
@@ -327,149 +349,33 @@ function CustomChannelHeader({ userData }: { userData: any }) {
 }
 
 interface StreamChatProps {
-  id: string;
+  userData: UserResponse;
+  client: StreamChatType | null;
 }
 
-export function StreamChatView({ id }: StreamChatProps) {
-  const { user, isLoaded } = useUser();
-  const [client, setClient] = useState<StreamChatType | null>(null);
-  const [channel, setChannel] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [userData, setUserData] = useState<any>(null);
-
-  useEffect(() => {
-    async function fetchUserData() {
-      if (!id) return;
-      try {
-        const response = await fetch(`/api/users/${id}`);
-        const data = await response.json();
-        setUserData(data);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    }
-    fetchUserData();
-  }, [id]);
-
-  useEffect(() => {
-    let mounted = true;
-    let currentClient: StreamChatType | null = null;
-
-    async function initChat() {
-      if (!user?.id || !isLoaded) return;
-
-      try {
-        console.log('Initializing chat...');
-        const streamClient = await connectToStream(
-          user.id,
-          user.username || 'Anonymous'
-        );
-
-        currentClient = streamClient;
-
-        if (!mounted) {
-          await streamClient.disconnectUser();
-          return;
-        }
-
-        console.log('Creating/getting channel...');
-        const channel = streamClient.channel('messaging', id, {
-          name: `Chat ${userData?.username || 'Anonymous'}`,
-          members: [user.id],
-          created_by_id: user.id,
-        });
-
-        try {
-          console.log('Watching channel...');
-          await channel.watch();
-          console.log('Channel watched successfully');
-        } catch (error: any) {
-          console.log('Channel watch error:', error.message);
-          if (error.message.includes('channel not found')) {
-            console.log('Creating new channel...');
-            await channel.create();
-            await channel.watch();
-            console.log('New channel created and watched');
-          } else {
-            throw error;
-          }
-        }
-
-        if (!mounted) {
-          await streamClient.disconnectUser();
-          return;
-        }
-
-        setClient(streamClient);
-        setChannel(channel);
-        console.log('Chat initialized successfully');
-      } catch (error) {
-        console.error('Error in initChat:', error);
-        setError(
-          error instanceof Error ? error.message : 'Failed to initialize chat'
-        );
-      }
-    }
-
-    initChat();
-
-    return () => {
-      mounted = false;
-      const cleanup = async () => {
-        if (currentClient) {
-          console.log('Cleaning up...');
-          await currentClient.disconnectUser();
-          setClient(null);
-          setChannel(null);
-        }
-      };
-      cleanup();
-    };
-  }, [user?.id, user?.username, userData, isLoaded, id]);
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-screen text-red-500">
-        Error: {error}
-      </div>
-    );
-  }
-
-  if (!isLoaded) {
+export function StreamChatView({ userData, client }: StreamChatProps) {
+  if (!client) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]"></div>
-        <p className="ml-2">Loading user...</p>
+        <p className="ml-2">Connecting to chat server...</p>
       </div>
     );
   }
-
-  if (!client || !channel) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]"></div>
-        <p className="ml-2">Connecting to chat...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <Chat client={client} theme="messaging light">
-        <Channel
-          channel={channel}
-          Message={(props) => <CustomMessage {...props} userData={userData} />}
-          Input={CustomInput}
-        >
-          <Window>
-            <CustomChannelHeader userData={userData} />
-            <div className="flex-1 overflow-y-auto p-4">
-              <MessageList />
-            </div>
-            <MessageInput />
-          </Window>
-        </Channel>
-      </Chat>
+      <Channel
+        Message={(props) => <CustomMessage {...props} userData={userData} />}
+        Input={CustomInput}
+      >
+        <Window>
+          <CustomChannelHeader userData={userData} />
+          <div className="flex-1 overflow-y-auto p-4">
+            <MessageList />
+          </div>
+          <MessageInput />
+        </Window>
+      </Channel>
     </div>
   );
 }
