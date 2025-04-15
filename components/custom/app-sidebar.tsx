@@ -35,15 +35,17 @@ import { useChatClient } from '@/hooks/use-chat-client';
 
 export function AppSidebar() {
   const router = useRouter();
+  const { id } = useParams<{ id: string }>();
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
   const { user } = useUser();
-  const isFindDisciplerPage = pathname.startsWith('/find-discipler');
+  const isFindDisciplerPage =
+    pathname.startsWith('/find-discipler') && id !== undefined;
 
   // ✅ Always call `useChatClient()` at the top
   const { client, userData, filters, sort, options } = useChatClient();
 
-  if (!client || !userData) {
+  if (!client && isFindDisciplerPage) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]"></div>
@@ -72,16 +74,13 @@ export function AppSidebar() {
           <>
             <Button
               variant="ghost"
-              onClick={() => router.push('/chats')}
+              onClick={() => router.push('/find-discipler')}
               className="w-full mb-4 justify-start text-md"
             >
-              <Image src={require('@/assets/Star.svg')} alt="star" />
-              Chat Growthbot
+              <Image src={require('@/assets/Star.svg')} alt="star" /> Discover
+              Mentor
             </Button>
             <div className="border-b" />
-            <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
-              Available Chats
-            </div>
             {client && (
               <ChannelList
                 sort={sort}
@@ -112,6 +111,10 @@ export function AppSidebar() {
               <Image src={require('@/assets/Add.svg')} alt="add" />
               New chat
             </Button>
+            <div className="border-b" />
+            <SidebarGroup>
+              <SidebarHistory />
+            </SidebarGroup>
           </>
         )}
       </SidebarContent>

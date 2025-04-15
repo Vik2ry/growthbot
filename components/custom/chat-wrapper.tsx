@@ -1,11 +1,17 @@
-// components/custom/chat-wrapper.tsx (Client Component)
 'use client';
 
 import { Chat } from 'stream-chat-react';
 import { useChatClient } from '@/hooks/use-chat-client';
 
-export default function ChatWrapper({ children }: { children: React.ReactNode }) {
-  const { client } = useChatClient();
+interface ChatWrapperProps {
+  children: React.ReactNode;
+  client?: any; // Optional client prop
+}
+
+export default function ChatWrapper({ children, client: propClient }: ChatWrapperProps) {
+  // Use the prop client if provided, otherwise use the hook
+  const { client: hookClient } = useChatClient();
+  const client = propClient || hookClient;
 
   if (!client) {
     return (

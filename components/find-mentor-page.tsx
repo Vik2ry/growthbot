@@ -16,6 +16,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { EmailAddress, PhoneNumber, User } from '@clerk/nextjs/server';
+import { createNewConversationAction } from '@/lib/actions'; // Import the action
 
 export interface UserData extends User {
   primaryEmailAddress: EmailAddress | null;
@@ -34,7 +35,7 @@ export interface UserData extends User {
 
 export default function FindMentorPageComponent() {
   const [loading, setLoading] = useState(false);
-  const [userList, setUserList] = useState<UserData[]>([]); // Use Users type here
+  const [userList, setUserList] = useState<UserData[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const { user: currentUser } = useUser();
   const router = useRouter();
@@ -102,9 +103,29 @@ export default function FindMentorPageComponent() {
     fetchUserList();
   }, [currentUser]);
 
-  const handleStartChat = (userId: string) => {
-    // Example: Assuming you have router initialized
-    router.push(`/find-discipler/${userId}`);
+  const handleStartChat = async (userId: string) => {
+    try {
+      // Fetch the user data
+      const response = await fetch(`/api/users/${userId}`);
+      const userData = await response.json();
+
+      // Call createNewConversationAction with the fetched data
+      const result = await createNewConversationAction({
+        name: `${userData.firstName} ${userData.lastName}`, // Use the user's name as the channel name
+        imageUrl: userData.imageUrl, // Use the user's image as the channel image
+        selectedUsers: [userId], // Add the selected user to the channel
+      });
+
+      if (result?.error) {
+        console.error('Error creating conversation:', result.error);
+        return;
+      }
+
+      // Redirect to the new chat
+      router.push(`/find-discipler/${userId}`);
+    } catch (error) {
+      console.error('Error starting chat:', error);
+    }
   };
 
   const filteredUsers = userList.filter(

@@ -62,43 +62,37 @@ function CustomMessage({ userData }: { userData: any }) {
   const { message } = useMessageContext();
   const { user } = useUser(); // Get current Clerk user
 
-  const isMyMessage = message.user?.id === user?.id;
+  // Determine if the message is from the current user
+  const isMyMessage = message.user?.id === userData?.id;
+  const messageUserImage = isMyMessage
+    ? user?.imageUrl
+    : message.user?.image || userData?.imageUrl || "/placeholder.svg"
 
-  // Determine the message user
-  const messageUser = isMyMessage ? user : message.user;
+  // Determine the message user (sender)
+  const messageUser = isMyMessage ? user : userData;
 
   const hasAttachments = message.attachments && message.attachments.length > 0;
+  const handleAttachmentClick = (attachment: any) => {
+    if (attachment.type === "file") {
+      window.open(attachment.asset_url, "_blank")
+    }
+  }
 
   return (
-    <div
-      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-4`}
-    >
-      <div
-        className={`flex ${isMyMessage ? 'flex-row-reverse' : 'flex-row'} items-start gap-2 max-w-[80%]`}
-      >
+    <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-4`}>
+      <div className={`flex ${isMyMessage ? 'flex-row-reverse' : 'flex-row'} items-start gap-2 max-w-[80%]`}>
         <Avatar className="h-8 w-8 rounded-sm">
           <AvatarImage
-            src={
-              typeof messageUser?.imageUrl === 'string'
-                ? messageUser.imageUrl
-                : '/placeholder.svg'
-            }
+            src={messageUserImage}
           />
           <AvatarFallback>
             {(messageUser?.firstName as string)?.[0] ||
-              (messageUser?.username as string)?.[0] ||
+              (messageUser?.name as string)?.[0] ||
               '?'}
           </AvatarFallback>
         </Avatar>
-        <div
-          className={`rounded-lg p-3 ${isMyMessage ? 'bg-[#0F1531] text-white' : 'bg-gray-100'}`}
-        >
-          {!isMyMessage && (
-            <p className="text-xs font-semibold mb-1">
-              {messageUser?.firstName as string}{' '}
-              {messageUser?.lastName as string}
-            </p>
-          )}
+        <div className={`rounded-lg p-3 ${isMyMessage ? "bg-[#0F1531] text-white" : "bg-gray-100"}`}>
+        {!isMyMessage && <p className="text-xs font-semibold mb-1">{message.user?.name}</p>}
           {hasAttachments && (
             <div className="mb-2 space-y-2">
               {message.attachments?.map((attachment: any, index: number) => {
@@ -108,24 +102,23 @@ function CustomMessage({ userData }: { userData: any }) {
                       key={index}
                       src={attachment.image_url || '/placeholder.svg'}
                       alt={attachment.fallback}
-                      className="max-w-xs rounded-lg"
+                      className="max-w-full rounded-lg cursor-pointer"
+                      onClick={() => window.open(attachment.image_url, "_blank")}
                     />
                   );
                 }
                 if (attachment.type === 'file') {
                   return (
-                    <a
+                    <div
                       key={index}
-                      href={attachment.asset_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+                      className="flex items-center gap-2 p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
+                      onClick={() => handleAttachmentClick(attachment)}
                     >
                       <Paperclip className="h-4 w-4" />
                       <span className="text-sm truncate">
                         {attachment.title}
                       </span>
-                    </a>
+                    </div>
                   );
                 }
                 return null;
@@ -285,7 +278,7 @@ function CustomChannelHeader({ userData }: { userData: any }) {
       <div className="container mx-auto px-1 sm:px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center bg-white rounded-full px-4 sm:px-4 py-2 sm:py-0 text-[#0F1531] justify-between gap-5">
-            <h1 className="font-semibold">{`${userData?.firstName} ${userData?.lastName}`}</h1>
+            <h1 className="font-semibold">{`${userData?.name}`}</h1>
             <Button variant="ghost" size="icon" className="hidden sm:block">
               <MoreVertical className="h-5 w-5" />
             </Button>
@@ -312,29 +305,11 @@ function CustomChannelHeader({ userData }: { userData: any }) {
                     <Bell className="mr-2 h-4 w-4" />
                     <span>Notifications</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    {!user ? (
-                      <Image
-                        src={
-                          require('@/assets/enwonoAvatar.webp') ||
-                          '/placeholder.svg'
-                        }
-                        alt="User Avatar"
-                        className="cursor-pointer rounded-full mr-2"
-                        width={32}
-                        height={32}
-                        onClick={toggleModal}
-                      />
-                    ) : (
-                      <UserButton />
-                    )}
-                    <span>My Profile</span>
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
             <Image
-              src={userData.imageUrl}
+              src={userData.image}
               alt="User Avatar"
               className="cursor-pointer rounded-full mr-2"
               width={32}
