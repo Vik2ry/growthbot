@@ -69,7 +69,7 @@ export function AppSidebar() {
         <div className="border-b" />
       </SidebarHeader>
 
-      <SidebarContent className="flex-1 items-center pl-6 pt-4 overflow-auto">
+      <SidebarContent className="flex-1 items-center pt-4 overflow-auto">
         {isFindDisciplerPage ? (
           <>
             <Button
