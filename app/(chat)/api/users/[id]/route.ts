@@ -1,8 +1,7 @@
-import { clerkClient } from "@clerk/express"
+import { clerkClient } from "@clerk/clerk-sdk-node"
 import { NextResponse } from "next/server"
 
-export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const user = await clerkClient.users.getUser(params.id)
     return NextResponse.json({
