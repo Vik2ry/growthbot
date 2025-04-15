@@ -69,27 +69,39 @@ export function AppSidebar() {
         <div className="border-b" />
       </SidebarHeader>
 
-      <SidebarContent className="flex-1 pl-6 pt-4 overflow-auto">
+      <SidebarContent className="flex-1 items-center pl-6 pt-4 overflow-auto">
         {isFindDisciplerPage ? (
           <>
             <Button
               variant="ghost"
               onClick={() => router.push('/find-discipler')}
-              className="w-full mb-4 justify-start text-md"
+              className="w-full mb-4 justify-center text-md"
             >
               <Image src={require('@/assets/Star.svg')} alt="star" /> Discover
               Mentor
             </Button>
+            <Button
+              onClick={() => {
+                router.push('/chats');
+                router.refresh();
+              }}
+              className="w-4/5 mb-6 p-5 bg-[#0F1531] hover:bg-indigo-900 text-white text-md"
+            >
+              <Image src={require('@/assets/Add.svg')} alt="add" />
+              New chat
+            </Button>
             <div className="border-b" />
-            {client && (
-              <ChannelList
-                sort={sort}
-                filters={filters!}
-                options={options}
-                List={CustomListContainer}
-                sendChannelsToList
-              />
-            )}
+            <SidebarGroup>
+              {client && (
+                <ChannelList
+                  sort={sort}
+                  filters={filters!}
+                  options={options}
+                  List={CustomListContainer}
+                  sendChannelsToList
+                />
+              )}
+            </SidebarGroup>
           </>
         ) : (
           <>
