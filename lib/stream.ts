@@ -1,68 +1,44 @@
-import { StreamChat } from "stream-chat"
+'use client';
+import { StreamChat } from 'stream-chat';
+import { createToken } from './actions';
 
-let globalClient: StreamChat | null = null
-
-export async function connectToStream(userId: string, userName: string) {
-  console.log("Connecting to Stream:", { userId, userName })
-
+// Fix: Improved Stream connection function
+export async function connectToStream(
+  userId: string,
+  username: string = 'Anonymous'
+) {
   try {
-    // If there's an existing client, disconnect it
-    if (globalClient) {
-      await globalClient.disconnectUser()
-      globalClient = null
+    if (!userId) {
+      throw new Error('No user ID provided');
     }
 
-    // Create a new client
-    const client = StreamChat.getInstance(process.env.NEXT_PUBLIC_STREAM_API_KEY!)
-    globalClient = client
-
-    // Get token from server action
-    const response = await fetch("/api/stream/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userId }),
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+    const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
+    if (!apiKey) {
+      throw new Error('Missing Stream API key');
     }
 
-    const data = await response.json()
-    const token = data.token
-
+    // Get a fresh token from the server
+    const token = await createToken(userId);
     if (!token) {
-      throw new Error("No token received from server")
+      throw new Error('Failed to get authentication token');
     }
 
-    // Connect user
+    // Create a new client instance
+    const client = new StreamChat(apiKey);
+
+    // Connect the user with the token
     await client.connectUser(
       {
         id: userId,
-        name: userName,
+        name: username,
       },
-      token,
-    )
-    console.log("User connected successfully")
+      token
+    );
 
-    return client
+    console.log('Successfully connected to Stream Chat');
+    return client;
   } catch (error) {
-    console.error("Error connecting to Stream:", error)
-    throw error
+    console.error('Error connecting to Stream Chat:', error);
+    throw error;
   }
 }
-
-// Add a cleanup function to handle disconnection
-export async function disconnectStream() {
-  if (globalClient) {
-    try {
-      await globalClient.disconnectUser()
-      globalClient = null
-    } catch (error) {
-      console.error("Error disconnecting from Stream:", error)
-      throw error
-    }
-  }
-}
-

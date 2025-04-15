@@ -1,26 +1,41 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   Channel,
+  ChannelList,
   Chat,
+  DefaultStreamChatGenerics,
   MessageInput,
-  VirtualizedMessageList,
+  MessageList,
   Window,
   useChannelStateContext,
+  useCreateChatClient,
   useMessageContext,
   useMessageInputContext,
 } from 'stream-chat-react';
 import type {
+  ChannelFilters,
+  ChannelOptions,
+  ChannelSort,
+  OwnUserResponse,
   StreamChat as StreamChatType,
-  Channel as StreamChannelType,
+  UserResponse,
 } from 'stream-chat';
-import { useUser } from '@clerk/nextjs';
+import { UserButton, useUser } from '@clerk/nextjs';
 import { connectToStream } from '@/lib/stream';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Send, MoreVertical, Smile, Paperclip, X } from 'lucide-react';
+import {
+  Send,
+  MoreVertical,
+  Smile,
+  Paperclip,
+  X,
+  Bell,
+  MessageSquare,
+} from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -29,30 +44,34 @@ import {
 import 'stream-chat-react/dist/css/v2/index.css';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
-import Image from 'next/image';
-import { Bell, MessageSquare } from 'lucide-react';
-import { UserButton } from '@clerk/nextjs';
 import { BetterTooltip } from './ui/tooltip';
-import { AccountSettingsModal } from '@/components/account-settings-modal';
+import { AccountSettingsModal } from './account-settings-modal';
+import Image from 'next/image';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { UserData } from '@/app/(chat)/find-discipler/[id]/page';
+import { UserResource } from '@clerk/types';
+import { UserData } from './find-mentor-page';
+import { createNewConversationAction, createToken } from '@/lib/actions';
+import { useChatClient } from '@/hooks/use-chat-client';
 
-function CustomMessage({ userData }: { userData: UserData }) {
-  const { message } = useMessageContext()
-  const { user } = useUser()
+function CustomMessage({ userData }: { userData: any }) {
+  const { message } = useMessageContext();
+  const { user } = useUser(); // Get current Clerk user
 
-  const isMyMessage = message.user?.id === userData?.id
+  // Determine if the message is from the current user
+  const isMyMessage = message.user?.id === userData?.id;
   const messageUserImage = isMyMessage
     ? user?.imageUrl
     : message.user?.image || userData?.imageUrl || "/placeholder.svg"
 
-  const hasAttachments = message.attachments && message.attachments.length > 0
+  // Determine the message user (sender)
+  const messageUser = isMyMessage ? user : userData;
 
+  const hasAttachments = message.attachments && message.attachments.length > 0;
   const handleAttachmentClick = (attachment: any) => {
     if (attachment.type === "file") {
       window.open(attachment.asset_url, "_blank")
@@ -60,36 +79,35 @@ function CustomMessage({ userData }: { userData: UserData }) {
   }
 
   return (
-    <div className={`flex ${isMyMessage ? "justify-end" : "justify-start"} mb-4`}>
-      <div className={`flex ${isMyMessage ? "flex-row-reverse" : "flex-row"} items-start gap-2 max-w-[80%]`}>
+    <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-4`}>
+      <div className={`flex ${isMyMessage ? 'flex-row-reverse' : 'flex-row'} items-start gap-2 max-w-[80%]`}>
         <Avatar className="h-8 w-8 rounded-sm">
           <AvatarImage
             src={messageUserImage}
-            alt={`${message.user?.name || "User"}'s avatar`}
-            onError={(e) => {
-              const img = e.target as HTMLImageElement
-              img.src = "/placeholder.svg"
-            }}
           />
-          <AvatarFallback>{message.user?.name?.[0] || "?"}</AvatarFallback>
+          <AvatarFallback>
+            {(messageUser?.firstName as string)?.[0] ||
+              (messageUser?.name as string)?.[0] ||
+              '?'}
+          </AvatarFallback>
         </Avatar>
         <div className={`rounded-lg p-3 ${isMyMessage ? "bg-[#0F1531] text-white" : "bg-gray-100"}`}>
-          {!isMyMessage && <p className="text-xs font-semibold mb-1">{message.user?.name}</p>}
+        {!isMyMessage && <p className="text-xs font-semibold mb-1">{message.user?.name}</p>}
           {hasAttachments && (
             <div className="mb-2 space-y-2">
               {message.attachments?.map((attachment: any, index: number) => {
-                if (attachment.type === "image") {
+                if (attachment.type === 'image') {
                   return (
                     <img
                       key={index}
-                      src={attachment.image_url || attachment.thumb_url || "/placeholder.svg"}
+                      src={attachment.image_url || '/placeholder.svg'}
                       alt={attachment.fallback}
                       className="max-w-full rounded-lg cursor-pointer"
                       onClick={() => window.open(attachment.image_url, "_blank")}
                     />
-                  )
+                  );
                 }
-                if (attachment.type === "file") {
+                if (attachment.type === 'file') {
                   return (
                     <div
                       key={index}
@@ -97,25 +115,27 @@ function CustomMessage({ userData }: { userData: UserData }) {
                       onClick={() => handleAttachmentClick(attachment)}
                     >
                       <Paperclip className="h-4 w-4" />
-                      <span className="text-sm truncate">{attachment.title}</span>
+                      <span className="text-sm truncate">
+                        {attachment.title}
+                      </span>
                     </div>
-                  )
+                  );
                 }
-                return null
+                return null;
               })}
             </div>
           )}
           <p className="text-sm break-words">{message.text}</p>
           <span className="text-xs text-gray-400 mt-1 block">
             {new Date(message.created_at!).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </span>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Custom Input component
@@ -229,7 +249,7 @@ function CustomInput() {
 }
 
 // Custom Channel Header component
-function CustomChannelHeader({ userData }: { userData: UserData }) {
+function CustomChannelHeader({ userData }: { userData: any }) {
   const { channel } = useChannelStateContext();
   const { user } = useUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -255,11 +275,11 @@ function CustomChannelHeader({ userData }: { userData: UserData }) {
 
   return (
     <header className="bg-[#f7f7f7] px-4 border-full">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-1 sm:px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center bg-white rounded-full py-3 md:py-0 px-4 text-[#0F1531] justify-between gap-5">
-            <h1 className="font-semibold">{`${userData?.firstName} ${userData?.lastName}`}</h1>
-            <Button variant="ghost" size="icon" className="hidden md:block">
+          <div className="flex items-center bg-white rounded-full px-4 sm:px-4 py-2 sm:py-0 text-[#0F1531] justify-between gap-5">
+            <h1 className="font-semibold">{`${userData?.name}`}</h1>
+            <Button variant="ghost" size="icon" className="hidden sm:block">
               <MoreVertical className="h-5 w-5" />
             </Button>
           </div>
@@ -269,7 +289,7 @@ function CustomChannelHeader({ userData }: { userData: UserData }) {
               <HeaderActions />
             </div>
             {/* Mobile view */}
-            <div className="md:hidden">
+            <div className="sm:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
@@ -288,24 +308,13 @@ function CustomChannelHeader({ userData }: { userData: UserData }) {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            {!user ? (
-              <Image
-                src={
-                  require('@/assets/enwonoAvatar.webp') || '/placeholder.svg'
-                }
-                alt="User Avatar"
-                className="cursor-pointer rounded-full mr-3"
-                width={32}
-                height={32}
-                onClick={toggleModal}
-              />
-            ) : (
-              <UserButton />
-            )}
-            <AccountSettingsModal
-              open={isModalOpen}
-              onOpenChange={setIsModalOpen}
-              user={user}
+            <Image
+              src={userData.image}
+              alt="User Avatar"
+              className="cursor-pointer rounded-full mr-2"
+              width={32}
+              height={32}
+              onClick={toggleModal}
             />
           </div>
         </div>
@@ -315,150 +324,33 @@ function CustomChannelHeader({ userData }: { userData: UserData }) {
 }
 
 interface StreamChatProps {
-  id: string
-  userData: UserData
+  userData: UserResponse;
+  client: StreamChatType | null;
 }
 
-export function StreamChatView({ id, userData }: StreamChatProps) {
-  const { user, isLoaded } = useUser()
-  const [client, setClient] = useState<StreamChatType | null>(null)
-  const [channel, setChannel] = useState<StreamChannelType | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-    let currentClient: StreamChatType | null = null
-
-    async function initChat() {
-      if (!user?.id || !isLoaded || !id) return
-
-      try {
-        console.log("Initializing chat...")
-        const streamClient = await connectToStream(user.id, user.username || "Anonymous")
-        currentClient = streamClient
-
-        if (!mounted) {
-          await streamClient.disconnectUser()
-          return
-        }
-
-        setClient(streamClient)
-
-        const channel = streamClient.channel("messaging", id, {
-          name: `Chat with ${userData?.username || "Anonymous"}`,
-          members: [user.id, id],
-          created_by_id: user.id,
-          image: userData?.imageUrl || "/placeholder.svg",
-        })
-
-        try {
-          await channel.watch()
-        } catch (error: any) {
-          console.log("Channel watch error:", error.message)
-          if (error.message.includes("channel not found")) {
-            console.log("Creating new channel...")
-            await channel.create()
-            await channel.watch()
-            console.log("New channel created and watched")
-          } else {
-            throw error
-          }
-        }
-
-        if (!mounted) {
-          await streamClient.disconnectUser()
-          return
-        }
-
-        setChannel(channel)
-      } catch (error) {
-        console.error("Error in initChat:", error)
-        const errorMessage = error instanceof Error ? error.message : "Failed to initialize chat"
-        setError(errorMessage)
-      }
-    }
-
-    initChat()
-
-    return () => {
-      mounted = false
-      // Use an IIFE for cleanup to handle the async disconnection
-      ;(async () => {
-        try {
-          if (currentClient) {
-            // First set states to null to prevent any component updates
-            setChannel(null)
-            setClient(null)
-            // Then disconnect the client
-            await currentClient.disconnectUser()
-          }
-        } catch (error) {
-          console.error("Error in cleanup:", error)
-        }
-      })()
-    }
-  }, [user?.id, user?.username, isLoaded, id, userData])
-
-  if (error) {
-    return <div className="flex items-center justify-center h-screen text-red-500">Error: {error}</div>
-  }
-
-  if (!isLoaded) {
+export function StreamChatView({ userData, client }: StreamChatProps) {
+  if (!client) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]" />
-        <p className="ml-2">Loading user...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]"></div>
+        <p className="ml-2">Connecting to chat server...</p>
       </div>
-    )
+    );
   }
-
-  if (!client || !channel) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]" />
-        <p className="ml-2">Connecting to chat...</p>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <Chat client={client} theme="messaging light">
-        <Channel
-          channel={channel}
-          Message={(props) => <CustomMessage {...props} userData={userData} />}
-          Input={CustomInput}
-        >
-          <Window>
-            <CustomChannelHeader userData={userData} />
-            <VirtualizedMessageList
-              // additionalVirtuosoProps={{className: "custom-virtualized-list"}}
-              loadingMore={false}
-              hasMore={false}
-              defaultItemHeight={76}
-            />
-            <MessageInput Input={CustomInput} />
-          </Window>
-        </Channel>
-      </Chat>
-      <style jsx global>{`
-        .str-chat {
-          --str-chat__primary-color: #0F1531;
-          --str-chat__active-primary-color: #0F1531;
-          height: 100vh;
-        }
-        .str-chat__virtual-list {
-          padding: 16px;
-          background: white;
-        }
-        .str-chat__virtual-list .str-chat__li {
-          margin-bottom: 16px;
-        }
-        .str-chat__input-flat {
-          border-top: 1px solid #e5e7eb;
-        }
-      `}</style>
+      <Channel
+        Message={(props) => <CustomMessage {...props} userData={userData} />}
+        Input={CustomInput}
+      >
+        <Window>
+          <CustomChannelHeader userData={userData} />
+          <div className="flex-1 overflow-y-auto p-4">
+            <MessageList />
+          </div>
+          <MessageInput />
+        </Window>
+      </Channel>
     </div>
-  )
+  );
 }
-

@@ -1,33 +1,28 @@
-"use client"
+'use client';
 
-import { StreamChatView } from "@/components/stream-chat"
-import { use, useEffect, useState } from "react"
+import { StreamChatView } from '@/components/stream-chat';
+import { useChatClient } from '@/hooks/use-chat-client';
+import { useParams } from 'next/navigation';
+import { use, useEffect, useState } from 'react';
+import { UserResponse } from 'stream-chat';
 
 export interface UserData {
-  id: string
-  username?: string
-  imageUrl?: string
-  firstName?: string
-  lastName?: string
+  id: string;
+  username?: string;
+  imageUrl?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
-export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ChatPage() {
   // Properly unwrap params
-  const resolvedParams = use(params);
-  const [userData, setUserData] = useState<UserData>();
- useEffect(() => {
-    async function fetchUserData() {
-      if (!resolvedParams.id) return;
-      try {
-        const response = await fetch(`/api/users/${resolvedParams.id}`);
-        const data = await response.json();
-        setUserData(data);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    }
-    fetchUserData();
-  }, [resolvedParams.id]);
-  return userData ? <StreamChatView id={resolvedParams.id} userData={userData} /> : <div>Loading...</div>
+  const { client, userData } = useChatClient();
+  return userData ? (
+    <StreamChatView userData={userData} client={client} />
+  ) : (
+    <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F1531]"></div>
+      <p className="ml-2">Loading...</p>
+    </div>
+  );
 }
-

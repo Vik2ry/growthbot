@@ -30,11 +30,14 @@ import { UserResource } from '@clerk/types';
 import { Logout } from '@/components/icons/logout';
 import { AccountSettingsModal } from '../account-settings-modal';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 export function SidebarUserNav({ user }: { user: any }) {
   const { signOut } = useClerk();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const toggleModal = () => setIsModalOpen((prev) => !prev);
+  const pathname = usePathname();
+  const isFindDisciplerPage = pathname.startsWith('/find-discipler');
 
   return (
     <SidebarMenu>
@@ -79,29 +82,33 @@ export function SidebarUserNav({ user }: { user: any }) {
           </DropdownMenuContent>
         </DropdownMenu> */}
         <Separator className="my-4" />
-        <Button variant="ghost" className="w-full justify-start mb-2">
-          <LogOut className="mr-2 h-4 w-4" /> Clear conversations
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={toggleModal}
-          className="w-full justify-start mb-4"
-        >
-          <UserIcon className="mr-2 h-4 w-4" /> My account
-        </Button>
-        <div className="flex items-center">
-        {!user ? (
-          <Image
-            src={require('@/assets/enwonoAvatar.webp')}
-            alt="User Avatar"
-            className="cursor-pointer rounded-full"
-            width={32}
-            height={32}
-            onClick={toggleModal}
-          />
-        ) : (
-          <UserButton />
+        {!isFindDisciplerPage && (
+          <>
+            <Button variant="ghost" className="w-full justify-start mb-2">
+              <LogOut className="mr-2 h-4 w-4" /> Clear conversations
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={toggleModal}
+              className="w-full justify-start mb-4"
+            >
+              <UserIcon className="mr-2 h-4 w-4" /> My account
+            </Button>
+          </>
         )}
+        <div className="flex items-center">
+          {!user ? (
+            <Image
+              src={require('@/assets/enwonoAvatar.webp')}
+              alt="User Avatar"
+              className="cursor-pointer rounded-full"
+              width={32}
+              height={32}
+              onClick={toggleModal}
+            />
+          ) : (
+            <UserButton />
+          )}
           <div>
             <span className="ml-3 text-sm font-medium truncate">
               {user?.fullName}
