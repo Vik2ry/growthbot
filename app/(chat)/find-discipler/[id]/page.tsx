@@ -17,7 +17,6 @@ export interface UserData {
 export default function ChatPage() {
   // Properly unwrap params
   const { client, userData } = useChatClient();
-
   return userData ? (
     <StreamChatView userData={userData} client={client} />
   ) : (
