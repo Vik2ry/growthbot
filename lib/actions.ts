@@ -16,10 +16,19 @@ export async function createToken(userId: string): Promise<string> {
 
 type NewConversationInputs = z.infer<typeof NewConversationFormSchema>
 export async function createNewConversationAction(data: NewConversationInputs) {
-  const { userId } = auth()
+  const { userId } = auth();
+  const userToken = await createToken(userId!);
 
   if (!userId) {
     return { error: 'Please log in first.' }
+  }
+
+  if (process.env.REACT_APP_CHAT_SERVER_ENDPOINT) {
+    serverClient.setBaseURL(process.env.REACT_APP_CHAT_SERVER_ENDPOINT);
+  }
+  
+  if (typeof window !== 'undefined') {
+    serverClient.connectUser({ id: userId }, userToken);
   }
 
   const result = NewConversationFormSchema.safeParse(data)
@@ -32,7 +41,7 @@ export async function createNewConversationAction(data: NewConversationInputs) {
     const channel = serverClient.channel('messaging', {
       name: data.name,
       image: data.imageUrl,
-      members: [userId, ...data.selectedUsers],
+      members: [userId, data.selectedUsers[0]],
       created_by_id: userId
     })
 
